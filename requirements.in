@@ -1,0 +1,11 @@
+# For accessing the dropbox api
+dropbox
+
+# Testing framework
+pytest
+
+# Better debugger for pytest
+pdbpp
+
+# For parsing yaml files
+pyyaml
