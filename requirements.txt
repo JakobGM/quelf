@@ -16,7 +16,7 @@ py==1.5.2                 # via pytest
 pygments==2.2.0           # via pdbpp
 pytest==3.3.1
 pyyaml==3.12
-requests==2.18.4          # via dropbox
+requests==2.18.4
 six==1.11.0               # via dropbox, pytest
 urllib3==1.22             # via requests
 wmctrl==0.3               # via pdbpp

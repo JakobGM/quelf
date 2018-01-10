@@ -9,3 +9,6 @@ pdbpp
 
 # For parsing yaml files
 pyyaml
+
+# For downloading sleep cycle data from SleepSecure(TM)
+requests

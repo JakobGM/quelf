@@ -1,3 +1,7 @@
+sleepcycle:
+    email:    email@example.com
+    password: plaintextpassword
+
 dropbox:
     app_key:    testappkey
     app_secret: testappsecret

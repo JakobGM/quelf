@@ -19,3 +19,4 @@ class File:
     def read(self):
         with open(self.path) as file:
             return file.read()
+
