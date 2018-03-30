@@ -1,8 +1,11 @@
 import os
 
+import pytest
+
 from sleepcycle import SleepCycle
 
 
+@pytest.mark.slow
 def test_downloading_data_from_sleepcycle():
     sc = SleepCycle()
     sc.download_data()
