@@ -4,11 +4,13 @@ from typing import Optional
 import yaml
 
 
-class Config:
-    def __init__(self, config_file: Optional[Path] = None) -> None:
-        if not config_file:
-            config_file = Path(__file__).parents[1] / 'config.yaml'
+CONFIG_DIRECTORY = Path(__file__).parents[1]
+CONFIG_FILE = CONFIG_DIRECTORY / 'config.yml'
+DATA_DIRECTORY = CONFIG_DIRECTORY / 'data'
 
+
+class Config:
+    def __init__(self, config_file: Path = CONFIG_FILE) -> None:
         with open(config_file, 'r') as file:
             self.yaml = yaml.load(file)
 
