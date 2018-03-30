@@ -4,7 +4,10 @@ dropbox
 # Testing framework
 pytest
 
-# For static type annotation checking
+# For static type checking
+mypy==0.560
+
+# For static type checking as part of test suite
 pytest-mypy
 
 # For continous testing
