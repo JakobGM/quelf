@@ -30,3 +30,6 @@ pandas
 
 # For plotting data
 matplotlib
+
+# For data exploring
+jupyterlab
