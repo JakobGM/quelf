@@ -27,3 +27,6 @@ pip-tools
 
 # For data analysis
 pandas
+
+# For plotting data
+matplotlib
