@@ -16,3 +16,9 @@ def test_extraction_of_json_file():
     sc = SleepCycle()
     sc.unzip_data()
     assert JSON_FILE.is_file()
+
+
+def test_importing_json_from_downloaded_data():
+    sc = SleepCycle()
+    sc.load_json()
+    assert isinstance(sc.json, list)

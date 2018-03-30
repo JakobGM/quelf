@@ -1,6 +1,8 @@
+import json
 from pathlib import Path
-import requests
 from zipfile import ZipFile
+
+import requests
 
 from .config import Config, DATA_DIRECTORY
 
@@ -38,8 +40,15 @@ class SleepCycle():
 
     def unzip_data(self) -> None:
         """Unzip downloaded data."""
-        if not ZIP_FILE:
+        if not ZIP_FILE.is_file():
             self.download_data()
 
         with ZipFile(ZIP_FILE, 'r') as zip_file:
             zip_file.extractall(DATA_DIRECTORY)
+
+    def load_json(self) -> None:
+        if not JSON_FILE.is_file():
+            self.unzip_data()
+
+        with open(JSON_FILE) as json_file:
+            self.json = json.load(json_file)
