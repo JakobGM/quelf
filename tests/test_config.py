@@ -1,4 +1,4 @@
-from config import Config
+from quelf.config import Config
 
 
 def test_retrieving_config_variable():

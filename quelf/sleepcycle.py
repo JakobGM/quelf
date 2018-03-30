@@ -1,6 +1,6 @@
 import requests
 
-from config import Config
+from .config import Config
 
 SLEEP_CYCLE_LOGIN_URL = 'https://s.sleepcycle.com/site/login'
 SLEEP_CYCLE_DATA_URL = 'https://s.sleepcycle.com/export/original'

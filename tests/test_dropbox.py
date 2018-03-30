@@ -1,4 +1,4 @@
-from droppboks import File as dbx_file
+from quelf.dropbox import File as dbx_file
 
 
 def test_file_retrieval():

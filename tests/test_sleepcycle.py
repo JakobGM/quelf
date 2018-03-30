@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from sleepcycle import SleepCycle
+from quelf.sleepcycle import SleepCycle
 
 
 @pytest.mark.slow
