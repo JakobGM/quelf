@@ -1,11 +1,11 @@
 from pathlib import Path
-import dropbox
+from dropbox import Dropbox  # type: ignore
 
 from .config import Config
 
 conf = Config()
 
-dbx = dropbox.Dropbox(conf['dropbox']['access_token'])
+dbx = Dropbox(conf['dropbox']['access_token'])
 
 
 class File:

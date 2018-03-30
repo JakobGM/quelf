@@ -5,7 +5,7 @@ import yaml
 
 
 class Config:
-    def __init__(self, config_file: Optional[Path] = None):
+    def __init__(self, config_file: Optional[Path] = None) -> None:
         if not config_file:
             config_file = Path(__file__).parents[1] / 'config.yaml'
 
