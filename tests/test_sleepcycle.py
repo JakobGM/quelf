@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 import pytest
 
 from quelf.sleepcycle import JSON_FILE, ZIP_FILE, SleepCycle
@@ -11,6 +12,7 @@ def test_downloading_data_from_sleepcycle():
     sc.download_data()
     assert ZIP_FILE.is_file()
 
+
 @pytest.mark.skipif(JSON_FILE.is_file(), reason='Data already unzipped')
 def test_extraction_of_json_file():
     sc = SleepCycle()
@@ -20,5 +22,13 @@ def test_extraction_of_json_file():
 
 def test_importing_json_from_downloaded_data():
     sc = SleepCycle()
-    sc.load_json()
-    assert isinstance(sc.json, list)
+    data = sc.load_json()
+    assert isinstance(data, pd.DataFrame)
+
+
+def test_lazily_loaded_data_attribute():
+    sc = SleepCycle()
+    assert not hasattr(sc, '_data')
+
+    data = sc.data
+    assert hasattr(sc, '_data')

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from zipfile import ZipFile
 
+import pandas as pd
 import requests
 
 from .config import Config, DATA_DIRECTORY
@@ -46,9 +47,18 @@ class SleepCycle():
         with ZipFile(ZIP_FILE, 'r') as zip_file:
             zip_file.extractall(DATA_DIRECTORY)
 
-    def load_json(self) -> None:
+    def load_json(self) -> pd.DataFrame:
         if not JSON_FILE.is_file():
             self.unzip_data()
 
-        with open(JSON_FILE) as json_file:
-            self.json = json.load(json_file)
+        return pd.read_json(
+            path_or_buf=JSON_FILE,
+            orient='records',
+        )
+
+    @property
+    def data(self) -> pd.DataFrame:
+        if not hasattr(self, '_data'):
+            self._data = self.load_json()
+
+        return self._data
