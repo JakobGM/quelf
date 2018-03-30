@@ -54,6 +54,7 @@ class SleepCycle():
         return pd.read_json(
             path_or_buf=JSON_FILE,
             orient='records',
+            convert_dates=['start', 'stop'],
         )
 
     @property
