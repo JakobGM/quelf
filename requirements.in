@@ -24,3 +24,6 @@ requests
 
 # For pip-compile/sync
 pip-tools
+
+# For data analysis
+pandas
