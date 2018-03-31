@@ -1,0 +1,6 @@
+dropbox:
+    access_token: 'your_dropbox_api_access_token'
+
+sleepcycle:
+    email: 'your_sleepcycle@email.com'
+    password: 'your_sleep_secure_password'
