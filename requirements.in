@@ -36,6 +36,3 @@ matplotlib
 
 # For data exploring
 jupyterlab
-
-# For progressbar when querying all data from API
-progressbar2

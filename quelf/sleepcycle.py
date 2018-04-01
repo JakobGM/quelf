@@ -79,12 +79,16 @@ class SleepCycle:
     def persist_first_and_last_sleepsession_id(self) -> None:
         """Fetch and persist the first and last sleepsession IDs."""
         landing_page = self.session.get(BASE_URL + '/site/comp/totalstat').text
+
+        # No, this is not a bug. `first_sleepsession_id` is indeed the *newest*
+        # data point, and `last_sleepsession_id` is the *first* recorded data
+        # type.
         self._first_sleepsession_id: int = int(re.search(
-            r'var first_sleepsession_id = \'(\d+)\'',
+            r'var last_sleepsession_id = \'(\d+)\'',
             landing_page,
         ).group(1))
         self._last_sleepsession_id: int = int(re.search(
-            r'var last_sleepsession_id = \'(\d+)\'',
+            r'var first_sleepsession_id = \'(\d+)\'',
             landing_page,
         ).group(1))
 
@@ -128,6 +132,10 @@ class SleepCycle:
     def fetch(self, endpoint: str, params: Dict = {}) -> Dict:
         """Fetch JSON from SleepSecure(TM) endpoint."""
         return self.session.get(BASE_URL + endpoint, params=params).json()
+
+    def __len__(self) -> int:
+        """Return the number of sleep sessions recorded."""
+        return self.data.shape[0]
 
 
 class SleepSessionJSON(TypedDict):
@@ -190,8 +198,9 @@ class SleepSessionsCache:
                     in content.items()
                     if session_id not in ('newest_session_id', 'first_session_id',)
                 }
-                self.memory['newest_session_id'] = int(content['newest_session_id'])
-                self.memory['first_session_id'] = int(content['first_session_id'])
+                if 'first_session_id' in content:
+                    self.memory['newest_session_id'] = int(content['newest_session_id'])
+                    self.memory['first_session_id'] = int(content['first_session_id'])
 
     def __setitem__(
         self,
@@ -199,8 +208,6 @@ class SleepSessionsCache:
         sleep_session: SleepSessionJSON,
     ) -> None:
         """Insert a new sleep session into the cache."""
-        assert session_id not in self.memory
-
         self.memory[session_id] = sleep_session
         self.memory['newest_session_id'] = session_id
         if 'first_session_id' not in self.memory:
@@ -208,6 +215,10 @@ class SleepSessionsCache:
 
         with open(self.path, 'w') as cache_file:
             json.dump(self.memory, cache_file)
+
+    def insert(self, session: SleepSessionJSON) -> None:
+        """Insert sleep session json into the cache."""
+        self[int(session['id'])] = session
 
     @property
     def newest(self) -> Optional[SleepSessionJSON]:
@@ -233,6 +244,13 @@ class SleepSessionsCache:
         """Return True if `session_id` has been persisted to cache."""
         return session_id in self.memory
 
+    def __len__(self) -> int:
+        """Return number of cached sleep sessions."""
+        if 'first_session_id' not in self.memory:
+            return 0
+        else:
+            return len(self.memory) - 2
+
     def __repr__(self) -> str:
         return f'<SleepSessionsCache: length={len(self.memory)}>'
 
@@ -248,6 +266,21 @@ class SleepSessions:
         self.last_sleepsession_id = last_sleepsession_id
         self.session = session
         self.cache = SleepSessionsCache()
+
+    def update_cache(self, total_items: Optional[int] = None) -> None:
+        """Fetch new data from SleepSecure(TM) API."""
+        bar = progressbar.ProgressBar(
+            inital_value=0,
+            max_value=total_items or ProgressBar.UnknownLength,
+        )
+        while self.last_sleepsession_id not in self.cache:
+            session_id = self.cache.newest['id'] if self.cache.newest else self.first_sleepsession_id
+            next_session = self.sleep_session(
+                session_id=session_id,
+                next_=True,
+            )
+            self.cache.insert(next_session)
+            bar.update(len(self.cache))
 
 
     def __iter__(self) -> 'SleepSessions':
@@ -270,6 +303,10 @@ class SleepSessions:
             except ValueError:
                 raise StopIteration()
 
+    def __len__(self) -> int:
+        """Return the number of fetched sleep session data."""
+        return len(self.cache)
+
     def sleep_session(
         self,
         session_id: int,
@@ -280,7 +317,7 @@ class SleepSessions:
         Return SleepSessionJSON for specific id.
 
         `next_` and `previous` flags indicate getting the next/previous
-        available sleepsession.
+        available sleep session.
         """
         params = {'id': str(session_id)}
         if next_:
