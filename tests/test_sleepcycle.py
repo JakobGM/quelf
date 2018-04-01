@@ -81,18 +81,53 @@ class TestSleepSessionsCache:
         cached_sleep_sessions[24] = '2'
         with open(cached_sleep_sessions.path, 'r') as cache:
             content = json.load(cache)
-            assert content == {'24': '2'}
+            assert content == {
+                '24': '2',
+                'first_session_id': 24,
+                'newest_session_id': 24,
+            }
 
         cached_sleep_sessions[1] = {'test': 'value'}
         with open(cached_sleep_sessions.path, 'r') as cache:
             content = json.load(cache)
-            assert content == {'24': '2', '1': {'test': 'value'}}
+            assert content == {
+                '24': '2',
+                '1': {'test': 'value'},
+                'first_session_id': 24,
+                'newest_session_id': 1,
+            }
 
         cache_path = cached_sleep_sessions.path
         del cached_sleep_sessions
         new_cached_sleep_sessions = SleepSessionsCache(json_file=cache_path)
         assert new_cached_sleep_sessions[24] == '2'
         assert new_cached_sleep_sessions[1] == {'test': 'value'}
+
+    def test_tracking_of_newest_and_oldest_session(self, cached_sleep_sessions):
+        assert cached_sleep_sessions.newest == None
+        assert cached_sleep_sessions.first == None
+
+        cached_sleep_sessions[10] = '2'
+        assert cached_sleep_sessions.newest == '2'
+        assert cached_sleep_sessions.first == '2'
+
+        cached_sleep_sessions[1] = '3'
+        assert cached_sleep_sessions.newest == '3'
+        assert cached_sleep_sessions.first == '2'
+
+        cache_path = cached_sleep_sessions.path
+        del cached_sleep_sessions
+        new_cached_sleep_sessions = SleepSessionsCache(json_file=cache_path)
+
+        assert new_cached_sleep_sessions.newest == '3'
+        assert new_cached_sleep_sessions.first == '2'
+
+        with open(cache_path, 'r') as cache:
+            content = json.load(cache)
+            assert content['newest_session_id'] == 1
+            assert content['first_session_id'] == 10
+
+
 
 
 @pytest.fixture

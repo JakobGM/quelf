@@ -1,10 +1,21 @@
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, Iterator, List, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from zipfile import ZipFile
 
 import pandas as pd
+import progressbar
 import requests
 from mypy_extensions import TypedDict
 
@@ -172,11 +183,15 @@ class SleepSessionsCache:
             # into memory, and cast string indeces to integer values, as JSON
             # does not support integer indexes in dictionaries.
             with open(self.path, 'r') as cache_file:
+                content = json.load(cache_file)
                 self.memory = {
                     int(session_id): sleep_session
                     for session_id, sleep_session
-                    in json.load(cache_file).items()
+                    in content.items()
+                    if session_id not in ('newest_session_id', 'first_session_id',)
                 }
+                self.memory['newest_session_id'] = int(content['newest_session_id'])
+                self.memory['first_session_id'] = int(content['first_session_id'])
 
     def __setitem__(
         self,
@@ -187,8 +202,28 @@ class SleepSessionsCache:
         assert session_id not in self.memory
 
         self.memory[session_id] = sleep_session
+        self.memory['newest_session_id'] = session_id
+        if 'first_session_id' not in self.memory:
+            self.memory['first_session_id'] = session_id
+
         with open(self.path, 'w') as cache_file:
             json.dump(self.memory, cache_file)
+
+    @property
+    def newest(self) -> Optional[SleepSessionJSON]:
+        """Return the most recently inserted sleep session."""
+        try:
+            return self.memory[self.memory['newest_session_id']]
+        except KeyError:
+            return None
+
+    @property
+    def first(self) -> Optional[SleepSessionJSON]:
+        """Return the first inserted sleep session."""
+        try:
+            return self.memory[self.memory['first_session_id']]
+        except KeyError:
+            return None
 
     def __getitem__(self, session_id: int) -> SleepSessionJSON:
         """Retrieve sleep session from cache."""
