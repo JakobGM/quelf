@@ -1,9 +1,16 @@
 import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from quelf.sleepcycle import JSON_FILE, ZIP_FILE, SleepCycle
+from quelf.sleepcycle import (
+    CachedSleepSessions,
+    JSON_FILE,
+    ZIP_FILE,
+    SleepCycle,
+    SleepSessions,
+)
 
 
 @pytest.mark.skipif(ZIP_FILE.is_file(), reason='Data already downloaded')
@@ -42,6 +49,49 @@ def test_getting_latest_sleep_session_id():
 def test_getting_first_sleep_session_id():
     sc = SleepCycle()
     assert sc.first_sleepsession_id > 0
+
+
+@pytest.fixture
+def cached_sleep_sessions(tmpdir):
+    cache_path = Path(tmpdir) / 'cache.json'
+    return CachedSleepSessions(json_file=cache_path)
+
+
+class TestCachedSleepSessions:
+    def test_creation_of_cached_sleep_session_file(self, cached_sleep_sessions):
+        assert cached_sleep_sessions.path.is_file()
+
+    def test_initial_content_being_empty_dict(self, cached_sleep_sessions):
+        with open(cached_sleep_sessions.path, 'r') as cache:
+            content = json.load(cache)
+            assert content == {}
+
+    def test_inserting_content(self, cached_sleep_sessions):
+        cached_sleep_sessions[24] = '2'
+        assert cached_sleep_sessions[24] == '2'
+
+    def test_in_keyword(self, cached_sleep_sessions):
+        assert 24 not in cached_sleep_sessions
+
+        cached_sleep_sessions[24] = '2'
+        assert 24 in cached_sleep_sessions
+
+    def test_persistence_to_disk(self, cached_sleep_sessions):
+        cached_sleep_sessions[24] = '2'
+        with open(cached_sleep_sessions.path, 'r') as cache:
+            content = json.load(cache)
+            assert content == {'24': '2'}
+
+        cached_sleep_sessions[1] = {'test': 'value'}
+        with open(cached_sleep_sessions.path, 'r') as cache:
+            content = json.load(cache)
+            assert content == {'24': '2', '1': {'test': 'value'}}
+
+        cache_path = cached_sleep_sessions.path
+        del cached_sleep_sessions
+        new_cached_sleep_sessions = CachedSleepSessions(json_file=cache_path)
+        assert new_cached_sleep_sessions[24] == '2'
+        assert new_cached_sleep_sessions[1] == {'test': 'value'}
 
 
 @pytest.fixture

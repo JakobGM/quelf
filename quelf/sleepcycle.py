@@ -16,6 +16,7 @@ SLEEP_CYCLE_DATA_URL = BASE_URL + '/export/original'
 
 ZIP_FILE = DATA_DIRECTORY / 'sleepcycle_data.zip'
 JSON_FILE = DATA_DIRECTORY / 'data_json.txt'
+CACHED_SLEEP_SESSIONS_FILE = DATA_DIRECTORY / 'sleep_sessions.json'
 
 
 class SleepCycle:
@@ -151,6 +152,52 @@ class SleepSessionJSON(TypedDict):
     graph_indbed: str                   # "23:11 - 07:26"
     steps: str                          # "4261 steps"
     start_local: str                    # "2015-12-14T23:11:58"
+
+
+class CachedSleepSessions:
+    """SleepSession JSON objects persisted to disk."""
+    DEFAULT_PATH = DATA_DIRECTORY / 'sleep_sessions.json'
+
+    def __init__(self, json_file: Path = DEFAULT_PATH) -> None:
+        """Initialize a cache persisted to `json_file`."""
+        self.path = json_file
+
+        if not self.path.is_file():
+            # No sleep sessions have been cached, so we need to create an empty
+            # cache file
+            self.memory = {}
+            with open(self.path, 'w') as cache_file:
+                json.dump({}, cache_file)
+        else:
+            # There are existing cached sleep sessions. We need to import them
+            # into memory, and cast string indeces to integer values, as JSON
+            # does not support integer indexes in dictionaries.
+            with open(self.path, 'r') as cache_file:
+                self.memory = {
+                    int(session_id): sleep_session
+                    for session_id, sleep_session
+                    in json.load(cache_file).items()
+                }
+
+    def __setitem__(
+        self,
+        session_id: int,
+        sleep_session: SleepSessionJSON,
+    ) -> None:
+        """Insert a new sleep session into the cache."""
+        assert session_id not in self.memory
+
+        self.memory[session_id] = sleep_session
+        with open(self.path, 'w') as cache_file:
+            json.dump(self.memory, cache_file)
+
+    def __getitem__(self, session_id: int) -> SleepSessionJSON:
+        """Retrieve sleep session from cache."""
+        return self.memory[session_id]
+
+    def __contains__(self, session_id: int) -> bool:
+        """Return True if `session_id` has been persisted to cache."""
+        return session_id in self.memory
 
 
 class SleepSessions:
