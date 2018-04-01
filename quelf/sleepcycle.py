@@ -172,8 +172,15 @@ class SleepSessionJSON(TypedDict):
     start_local: str                    # "2015-12-14T23:11:58"
 
 
+class SleepSessionsJSONCache(TypedDict):
+    sleep_sessions: Dict[int, SleepSessionJSON]
+    newest_session_id: int
+    first_session_id: int
+
+
 class SleepSessionsCache:
     """SleepSession JSON objects persisted to disk."""
+    memory: SleepSessionsJSONCache
     DEFAULT_PATH = DATA_DIRECTORY / 'sleep_sessions.json'
 
     def __init__(self, json_file: Path = DEFAULT_PATH) -> None:
@@ -183,24 +190,37 @@ class SleepSessionsCache:
         if not self.path.is_file():
             # No sleep sessions have been cached, so we need to create an empty
             # cache file
-            self.memory = {}
+            self.memory = {
+                'sleep_sessions': {},
+                'newest_session_id': 0,
+                'first_session_id': 0,
+            }
             with open(self.path, 'w') as cache_file:
-                json.dump({}, cache_file)
+                json.dump(self.memory, cache_file)
         else:
             # There are existing cached sleep sessions. We need to import them
             # into memory, and cast string indeces to integer values, as JSON
             # does not support integer indexes in dictionaries.
             with open(self.path, 'r') as cache_file:
                 content = json.load(cache_file)
-                self.memory = {
+                sleep_sessions = {
                     int(session_id): sleep_session
                     for session_id, sleep_session
-                    in content.items()
-                    if session_id not in ('newest_session_id', 'first_session_id',)
+                    in content['sleep_sessions'].items()
                 }
-                if 'first_session_id' in content:
-                    self.memory['newest_session_id'] = int(content['newest_session_id'])
-                    self.memory['first_session_id'] = int(content['first_session_id'])
+
+                if content['newest_session_id']:
+                    self.memory = {
+                        'newest_session_id': int(content['newest_session_id']),
+                        'first_session_id': int(content['first_session_id']),
+                        'sleep_sessions': sleep_sessions,
+                    }
+                else:
+                    self.memory = {
+                        'newest_session_id': 0,
+                        'first_session_id': 0,
+                        'sleep_sessions': sleep_sessions,
+                    }
 
     def __setitem__(
         self,
@@ -208,9 +228,11 @@ class SleepSessionsCache:
         sleep_session: SleepSessionJSON,
     ) -> None:
         """Insert a new sleep session into the cache."""
-        self.memory[session_id] = sleep_session
+        assert session_id != 0
+        self.memory['sleep_sessions'][session_id] = sleep_session
+
         self.memory['newest_session_id'] = session_id
-        if 'first_session_id' not in self.memory:
+        if not self.memory['first_session_id']:
             self.memory['first_session_id'] = session_id
 
         with open(self.path, 'w') as cache_file:
@@ -224,7 +246,7 @@ class SleepSessionsCache:
     def newest(self) -> Optional[SleepSessionJSON]:
         """Return the most recently inserted sleep session."""
         try:
-            return self.memory[self.memory['newest_session_id']]
+            return self.memory['sleep_sessions'][self.memory['newest_session_id']]
         except KeyError:
             return None
 
@@ -232,27 +254,24 @@ class SleepSessionsCache:
     def first(self) -> Optional[SleepSessionJSON]:
         """Return the first inserted sleep session."""
         try:
-            return self.memory[self.memory['first_session_id']]
+            return self.memory['sleep_sessions'][self.memory['first_session_id']]
         except KeyError:
             return None
 
     def __getitem__(self, session_id: int) -> SleepSessionJSON:
         """Retrieve sleep session from cache."""
-        return self.memory[session_id]
+        return self.memory['sleep_sessions'][session_id]
 
     def __contains__(self, session_id: int) -> bool:
         """Return True if `session_id` has been persisted to cache."""
-        return session_id in self.memory
+        return session_id in self.memory['sleep_sessions']
 
     def __len__(self) -> int:
         """Return number of cached sleep sessions."""
-        if 'first_session_id' not in self.memory:
-            return 0
-        else:
-            return len(self.memory) - 2
+        return len(self.memory['sleep_sessions'])
 
     def __repr__(self) -> str:
-        return f'<SleepSessionsCache: length={len(self.memory)}>'
+        return f'<SleepSessionsCache: length={len(self)}>'
 
 
 class SleepSessions:
@@ -271,15 +290,20 @@ class SleepSessions:
         """Fetch new data from SleepSecure(TM) API."""
         bar = progressbar.ProgressBar(
             inital_value=0,
-            max_value=total_items or ProgressBar.UnknownLength,
+            max_value=total_items or progressbar.ProgressBar.UnknownLength,
         )
+        if not self.cache.newest:
+            self.cache.insert(self.sleep_session(
+                session_id=self.first_sleepsession_id,
+                next_=False,
+            ))
+            bar.update(1)
+
         while self.last_sleepsession_id not in self.cache:
-            session_id = self.cache.newest['id'] if self.cache.newest else self.first_sleepsession_id
-            next_session = self.sleep_session(
-                session_id=session_id,
+            self.cache.insert(self.sleep_session(  # type: ignore
+                session_id=self.cache.newest['id'],  # type: ignore
                 next_=True,
-            )
-            self.cache.insert(next_session)
+            ))
             bar.update(len(self.cache))
 
     def __len__(self) -> int:

@@ -62,10 +62,14 @@ class TestSleepSessionsCache:
     def test_creation_of_cached_sleep_session_file(self, cached_sleep_sessions):
         assert cached_sleep_sessions.path.is_file()
 
-    def test_initial_content_being_empty_dict(self, cached_sleep_sessions):
+    def test_initial_content_being_empty_cache_structure(self, cached_sleep_sessions):
         with open(cached_sleep_sessions.path, 'r') as cache:
             content = json.load(cache)
-            assert content == {}
+            assert content == {
+                'sleep_sessions': {},
+                'first_session_id': 0,
+                'newest_session_id': 0,
+            }
 
     def test_inserting_content(self, cached_sleep_sessions):
         cached_sleep_sessions[24] = '2'
@@ -82,7 +86,7 @@ class TestSleepSessionsCache:
         with open(cached_sleep_sessions.path, 'r') as cache:
             content = json.load(cache)
             assert content == {
-                '24': '2',
+                'sleep_sessions': {'24': '2'},
                 'first_session_id': 24,
                 'newest_session_id': 24,
             }
@@ -91,8 +95,10 @@ class TestSleepSessionsCache:
         with open(cached_sleep_sessions.path, 'r') as cache:
             content = json.load(cache)
             assert content == {
-                '24': '2',
-                '1': {'test': 'value'},
+                'sleep_sessions': {
+                    '24': '2',
+                    '1': {'test': 'value'},
+                },
                 'first_session_id': 24,
                 'newest_session_id': 1,
             }
@@ -144,4 +150,5 @@ class TestSleepSessions:
     def test_updating_sleep_session_cache(self, sleep_sessions):
         sc = SleepCycle()
         sleep_sessions.update_cache(total_items=len(sc))
-        assert len(sc) == len(sleep_sessions)
+        assert 0 not in sleep_sessions.cache
+        assert len(sc) == len(sleep_sessions) - 1  # TODO
