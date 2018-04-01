@@ -282,27 +282,6 @@ class SleepSessions:
             self.cache.insert(next_session)
             bar.update(len(self.cache))
 
-
-    def __iter__(self) -> 'SleepSessions':
-        """Return Iterator which iterates over all sleep sessions."""
-        return self
-
-    def __next__(self) -> SleepSessionJSON:
-        """Fetch next sleep session JSON from SleepSecure(TM) endpoint."""
-        if not hasattr(self, 'current_sleepsession_id'):
-            self.current_sleepsession_id = self.first_sleepsession_id
-            return self.sleep_session(session_id=self.current_sleepsession_id)
-        else:
-            try:
-                current_sleepsession = self.sleep_session(
-                    session_id=self.current_sleepsession_id,
-                    previous=True,
-                )
-                self.current_sleepsession_id = current_sleepsession['id']
-                return current_sleepsession
-            except ValueError:
-                raise StopIteration()
-
     def __len__(self) -> int:
         """Return the number of fetched sleep session data."""
         return len(self.cache)

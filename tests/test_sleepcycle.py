@@ -141,20 +141,6 @@ def sleep_sessions():
 
 
 class TestSleepSessions:
-    def test_iterating_over_the_first_sleepsessions(self, sleep_sessions):
-        first_sleepsession = next(sleep_sessions)
-        assert sleep_sessions.first_sleepsession_id == first_sleepsession['id']
-
-        second_sleepsession = next(sleep_sessions)
-        assert first_sleepsession['id'] != second_sleepsession['id']
-
-    def test_caching_of_sleepsessions(self, sleep_sessions):
-        first_sleepsession = next(sleep_sessions)
-        assert first_sleepsession['id'] in sleep_sessions.cache
-
-        second_sleepsession = next(sleep_sessions)
-        assert second_sleepsession['id'] in sleep_sessions.cache
-
     def test_updating_sleep_session_cache(self, sleep_sessions):
         sc = SleepCycle()
         sleep_sessions.update_cache(total_items=len(sc))
