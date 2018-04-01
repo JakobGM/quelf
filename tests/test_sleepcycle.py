@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -5,7 +6,7 @@ import pandas as pd
 import pytest
 
 from quelf.sleepcycle import (
-    CachedSleepSessions,
+    SleepSessionsCache,
     JSON_FILE,
     ZIP_FILE,
     SleepCycle,
@@ -54,10 +55,10 @@ def test_getting_first_sleep_session_id():
 @pytest.fixture
 def cached_sleep_sessions(tmpdir):
     cache_path = Path(tmpdir) / 'cache.json'
-    return CachedSleepSessions(json_file=cache_path)
+    return SleepSessionsCache(json_file=cache_path)
 
 
-class TestCachedSleepSessions:
+class TestSleepSessionsCache:
     def test_creation_of_cached_sleep_session_file(self, cached_sleep_sessions):
         assert cached_sleep_sessions.path.is_file()
 
@@ -89,7 +90,7 @@ class TestCachedSleepSessions:
 
         cache_path = cached_sleep_sessions.path
         del cached_sleep_sessions
-        new_cached_sleep_sessions = CachedSleepSessions(json_file=cache_path)
+        new_cached_sleep_sessions = SleepSessionsCache(json_file=cache_path)
         assert new_cached_sleep_sessions[24] == '2'
         assert new_cached_sleep_sessions[1] == {'test': 'value'}
 

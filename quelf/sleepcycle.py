@@ -154,7 +154,7 @@ class SleepSessionJSON(TypedDict):
     start_local: str                    # "2015-12-14T23:11:58"
 
 
-class CachedSleepSessions:
+class SleepSessionsCache:
     """SleepSession JSON objects persisted to disk."""
     DEFAULT_PATH = DATA_DIRECTORY / 'sleep_sessions.json'
 
@@ -210,6 +210,7 @@ class SleepSessions:
         self.first_sleepsession_id = first_sleepsession_id
         self.last_sleepsession_id = last_sleepsession_id
         self.session = session
+        self.cache = SleepSessionsCache()
 
 
     def __iter__(self) -> 'SleepSessions':
