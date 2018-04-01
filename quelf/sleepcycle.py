@@ -1,5 +1,5 @@
+import json
 import re
-from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, Generator, Iterable, Iterator, List, Tuple, Union
 from zipfile import ZipFile
@@ -16,7 +16,6 @@ SLEEP_CYCLE_DATA_URL = BASE_URL + '/export/original'
 
 ZIP_FILE = DATA_DIRECTORY / 'sleepcycle_data.zip'
 JSON_FILE = DATA_DIRECTORY / 'data_json.txt'
-CACHED_SLEEP_SESSIONS_FILE = DATA_DIRECTORY / 'sleep_sessions.json'
 
 
 class SleepCycle:
@@ -199,6 +198,9 @@ class SleepSessionsCache:
         """Return True if `session_id` has been persisted to cache."""
         return session_id in self.memory
 
+    def __repr__(self) -> str:
+        return f'<SleepSessionsCache: length={len(self.memory)}>'
+
 
 class SleepSessions:
     def __init__(
@@ -221,11 +223,11 @@ class SleepSessions:
         """Fetch next sleep session JSON from SleepSecure(TM) endpoint."""
         if not hasattr(self, 'current_sleepsession_id'):
             self.current_sleepsession_id = self.first_sleepsession_id
-            return self.sleep_session(id_=self.current_sleepsession_id)
+            return self.sleep_session(session_id=self.current_sleepsession_id)
         else:
             try:
                 current_sleepsession = self.sleep_session(
-                    id_=self.current_sleepsession_id,
+                    session_id=self.current_sleepsession_id,
                     previous=True,
                 )
                 self.current_sleepsession_id = current_sleepsession['id']
@@ -235,7 +237,7 @@ class SleepSessions:
 
     def sleep_session(
         self,
-        id_: int,
+        session_id: int,
         next_: bool = False,
         previous: bool = False,
     ) -> SleepSessionJSON:
@@ -245,18 +247,25 @@ class SleepSessions:
         `next_` and `previous` flags indicate getting the next/previous
         available sleepsession.
         """
-        params = {'id': str(id_)}
+        params = {'id': str(session_id)}
         if next_:
             params['next'] = '1'
         elif previous:
             params['prev'] = '1'
+        elif session_id in self.cache:
+            return self.cache[session_id]
 
         try:
-            return self.session.get(
+            session_response = self.session.get(
                 BASE_URL + '/stat/session',
                 params=params,
             ).json()
-        except JSONDecodeError:
+
+            if session_response['id'] not in self.cache:
+                self.cache[session_response['id']] = session_response
+
+            return session_response
+        except json.decoder.JSONDecodeError:
             if next_:
                 raise ValueError('No next sleepsession')
             elif previous:

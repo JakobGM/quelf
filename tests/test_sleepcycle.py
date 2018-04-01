@@ -112,3 +112,10 @@ class TestSleepSessions:
 
         second_sleepsession = next(sleep_sessions)
         assert first_sleepsession['id'] != second_sleepsession['id']
+
+    def test_caching_of_sleepsessions(self, sleep_sessions):
+        first_sleepsession = next(sleep_sessions)
+        assert first_sleepsession['id'] in sleep_sessions.cache
+
+        second_sleepsession = next(sleep_sessions)
+        assert second_sleepsession['id'] in sleep_sessions.cache
