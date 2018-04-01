@@ -36,9 +36,28 @@ def test_lazily_loaded_data_attribute():
 
 def test_getting_latest_sleep_session_id():
     sc = SleepCycle()
-    assert int(sc.last_sleepsession_id) > 0
+    assert sc.last_sleepsession_id > 0
 
 
 def test_getting_first_sleep_session_id():
     sc = SleepCycle()
-    assert int(sc.first_sleepsession_id) > 0
+    assert sc.first_sleepsession_id > 0
+
+
+@pytest.fixture
+def sleep_sessions():
+    sc = SleepCycle()
+    return SleepSessions(
+        first_sleepsession_id=sc.first_sleepsession_id,
+        last_sleepsession_id=sc.last_sleepsession_id,
+        session=sc.session,
+    )
+
+
+class TestSleepSessions:
+    def test_iterating_over_the_first_sleepsessions(self, sleep_sessions):
+        first_sleepsession = next(sleep_sessions)
+        assert sleep_sessions.first_sleepsession_id == first_sleepsession['id']
+
+        second_sleepsession = next(sleep_sessions)
+        assert first_sleepsession['id'] != second_sleepsession['id']

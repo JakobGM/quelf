@@ -7,6 +7,9 @@ pytest
 # For static type checking
 mypy==0.560
 
+# For the use of TypedDict
+mypy_extensions
+
 # For static type checking as part of test suite
 pytest-mypy
 

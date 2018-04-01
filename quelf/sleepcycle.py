@@ -1,10 +1,12 @@
-from pathlib import Path
-from typing import Dict
 import re
+from json.decoder import JSONDecodeError
+from pathlib import Path
+from typing import Any, Dict, Generator, Iterable, Iterator, List, Tuple, Union
 from zipfile import ZipFile
 
 import pandas as pd
 import requests
+from mypy_extensions import TypedDict
 
 from .config import Config, DATA_DIRECTORY
 
@@ -50,14 +52,14 @@ class SleepCycle:
         return self._session
 
     @property
-    def last_sleepsession_id(self) -> str:
+    def last_sleepsession_id(self) -> int:
         """Return the session ID of the latest recorded sleep data."""
         if not hasattr(self, '_last_sleepsession_id'):
             self.persist_first_and_last_sleepsession_id()
         return self._last_sleepsession_id
 
     @property
-    def first_sleepsession_id(self) -> str:
+    def first_sleepsession_id(self) -> int:
         """Return the session ID of the latest recorded sleep data."""
         if not hasattr(self, '_first_sleepsession_id'):
             self.persist_first_and_last_sleepsession_id()
@@ -66,14 +68,14 @@ class SleepCycle:
     def persist_first_and_last_sleepsession_id(self) -> None:
         """Fetch and persist the first and last sleepsession IDs."""
         landing_page = self.session.get(BASE_URL + '/site/comp/totalstat').text
-        self._first_sleepsession_id: str = re.search(
+        self._first_sleepsession_id: int = int(re.search(
             r'var first_sleepsession_id = \'(\d+)\'',
             landing_page,
-        ).group(1)
-        self._last_sleepsession_id: str = re.search(
+        ).group(1))
+        self._last_sleepsession_id: int = int(re.search(
             r'var last_sleepsession_id = \'(\d+)\'',
             landing_page,
-        ).group(1)
+        ).group(1))
 
     def download_data(self) -> None:
         """Download the latest SleepCycle data to the data directory."""
@@ -115,3 +117,101 @@ class SleepCycle:
     def fetch(self, endpoint: str, params: Dict = {}) -> Dict:
         """Fetch JSON from SleepSecure(TM) endpoint."""
         return self.session.get(BASE_URL + endpoint, params=params).json()
+
+
+class SleepSessionJSON(TypedDict):
+    rating: int                         # 0-3
+    heartrate: Union[str, List[float]]  # "n/a" is None
+    graph_date: str                     # "Monday 14-15 Dec, 2015"
+    stop_tick_tz: str                   # "Europe/Oslo"
+    start_tick_tz: str                  # "Europe/Oslo"
+    window_offset_stop: str             # "2015-12-15T07:25:00"
+    stop_tick: float                    # 471853567.05131602
+    start_global: str                   # "2015-12-14T22:11:58"
+    id: int                             # 5029422020165632
+    window_start: str                   # "2015-12-15T07:07:25:00",
+    window_offset_start: str            # "2015-12-15T07:07:25:00",
+    stop_global: str                    # "2015-12-15T06:06:26:07"
+    stop_local: str                     # "2015-12-15T07:07:26:07"
+    stats_version: int                  # 1
+    sleep_notes: Union[str, List[str]]  # "n/a" is None
+    graph: List[Tuple[int, float]]      # [index, activity_level]
+    stats_sq: float                     # [0.0, 1.0]
+    seconds_from_gmt: int               # 3600
+    alarm_mode: int                     # 0 or 1
+    xaxis: List[Tuple[float, str]]      # [70.626328038045131, "05"]
+    graph_tib: str                      # "8:14"
+    start_tick: float                   # 471823918.51976001
+    stats_wakeup: int                   # 0 or 1
+    stats_duration: float               # 29648.53155601025
+    stats_sol: int                      # 0 or 1
+    stats_mph: float                    # 2.8861129111405419
+    window_stop: str                    # "2015-12-15T07:25:00"
+    state_mode: int                     # 2
+    graph_indbed: str                   # "23:11 - 07:26"
+    steps: str                          # "4261 steps"
+    start_local: str                    # "2015-12-14T23:11:58"
+
+
+class SleepSessions:
+    def __init__(
+        self,
+        first_sleepsession_id: int,
+        last_sleepsession_id: int,
+        session: requests.Session,
+    ) -> None:
+        self.first_sleepsession_id = first_sleepsession_id
+        self.last_sleepsession_id = last_sleepsession_id
+        self.session = session
+
+
+    def __iter__(self) -> 'SleepSessions':
+        """Return Iterator which iterates over all sleep sessions."""
+        return self
+
+    def __next__(self) -> SleepSessionJSON:
+        """Fetch next sleep session JSON from SleepSecure(TM) endpoint."""
+        if not hasattr(self, 'current_sleepsession_id'):
+            self.current_sleepsession_id = self.first_sleepsession_id
+            return self.sleep_session(id_=self.current_sleepsession_id)
+        else:
+            try:
+                current_sleepsession = self.sleep_session(
+                    id_=self.current_sleepsession_id,
+                    previous=True,
+                )
+                self.current_sleepsession_id = current_sleepsession['id']
+                return current_sleepsession
+            except ValueError:
+                raise StopIteration()
+
+    def sleep_session(
+        self,
+        id_: int,
+        next_: bool = False,
+        previous: bool = False,
+    ) -> SleepSessionJSON:
+        """
+        Return SleepSessionJSON for specific id.
+
+        `next_` and `previous` flags indicate getting the next/previous
+        available sleepsession.
+        """
+        params = {'id': str(id_)}
+        if next_:
+            params['next'] = '1'
+        elif previous:
+            params['prev'] = '1'
+
+        try:
+            return self.session.get(
+                BASE_URL + '/stat/session',
+                params=params,
+            ).json()
+        except JSONDecodeError:
+            if next_:
+                raise ValueError('No next sleepsession')
+            elif previous:
+                raise ValueError('No previous sleepsession')
+            else:
+                raise
