@@ -32,3 +32,13 @@ def test_lazily_loaded_data_attribute():
 
     data = sc.data
     assert hasattr(sc, '_data')
+
+
+def test_getting_latest_sleep_session_id():
+    sc = SleepCycle()
+    assert int(sc.last_sleepsession_id) > 0
+
+
+def test_getting_first_sleep_session_id():
+    sc = SleepCycle()
+    assert int(sc.first_sleepsession_id) > 0

@@ -32,7 +32,7 @@ class SleepCycle:
         password = conf['password']
         self.headers = {'username': email, 'password': password}
 
-        self._session = requests.Session()
+        self._session: requests.Session = requests.Session()
         self._session.get(SLEEP_CYCLE_LOGIN_URL)
         self._session.post(
             SLEEP_CYCLE_LOGIN_URL,
@@ -48,6 +48,32 @@ class SleepCycle:
         )
 
         return self._session
+
+    @property
+    def last_sleepsession_id(self) -> str:
+        """Return the session ID of the latest recorded sleep data."""
+        if not hasattr(self, '_last_sleepsession_id'):
+            self.persist_first_and_last_sleepsession_id()
+        return self._last_sleepsession_id
+
+    @property
+    def first_sleepsession_id(self) -> str:
+        """Return the session ID of the latest recorded sleep data."""
+        if not hasattr(self, '_first_sleepsession_id'):
+            self.persist_first_and_last_sleepsession_id()
+        return self._first_sleepsession_id
+
+    def persist_first_and_last_sleepsession_id(self) -> None:
+        """Fetch and persist the first and last sleepsession IDs."""
+        landing_page = self.session.get(BASE_URL + '/site/comp/totalstat').text
+        self._first_sleepsession_id: str = re.search(
+            r'var first_sleepsession_id = \'(\d+)\'',
+            landing_page,
+        ).group(1)
+        self._last_sleepsession_id: str = re.search(
+            r'var last_sleepsession_id = \'(\d+)\'',
+            landing_page,
+        ).group(1)
 
     def download_data(self) -> None:
         """Download the latest SleepCycle data to the data directory."""
