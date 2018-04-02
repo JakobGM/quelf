@@ -137,6 +137,25 @@ class SleepCycle:
         """Return the number of sleep sessions recorded."""
         return self.data.shape[0]
 
+    def update_sleep_sessions_cache(self) -> None:
+        if not hasattr(self, 'sleep_sessions'):
+            self.sleep_session_manager = SleepSessions(
+                first_sleepsession_id=self.first_sleepsession_id,
+                last_sleepsession_id=self.last_sleepsession_id,
+                session=self.session,
+            )
+        self.sleep_session_manager.update_cache(total_items=len(self))
+
+    @property
+    def sleep_sessions(self) -> pd.DataFrame:
+        if not hasattr(self, '_sleep_sessions'):
+            with open(self.sleep_session_manager.cache.path) as cache:
+                self._sleep_sessions = pd.DataFrame(
+                    list(json.load(cache)['sleep_sessions'].values()),
+                )
+
+        return self._sleep_sessions
+
 
 class SleepSessionJSON(TypedDict):
     rating: int                         # 0-3
@@ -290,7 +309,7 @@ class SleepSessions:
         """Fetch new data from SleepSecure(TM) API."""
         bar = progressbar.ProgressBar(
             inital_value=0,
-            max_value=total_items or progressbar.ProgressBar.UnknownLength,
+            max_value=total_items or progressbar.UnknownLength,
         )
         if not self.cache.newest:
             self.cache.insert(self.sleep_session(
