@@ -144,7 +144,10 @@ class SleepCycle:
                 last_sleepsession_id=self.last_sleepsession_id,
                 session=self.session,
             )
-        self.sleep_session_manager.update_cache(total_items=len(self))
+        days_since_last_export = (pd.Timestamp.today() - self.data.iloc[0]['stop']).days
+        self.sleep_session_manager.update_cache(
+            total_items=len(self) + days_since_last_export,
+        )
 
     @property
     def sleep_sessions(self) -> pd.DataFrame:
