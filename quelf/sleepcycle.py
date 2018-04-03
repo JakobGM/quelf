@@ -19,7 +19,7 @@ import progressbar
 import requests
 from mypy_extensions import TypedDict
 
-from .config import Config, DATA_DIRECTORY
+from .config import config, DATA_DIRECTORY
 
 BASE_URL = 'https://s.sleepcycle.com'
 SLEEP_CYCLE_LOGIN_URL = BASE_URL + '/site/login'
@@ -40,7 +40,7 @@ class SleepCycle:
         if hasattr(self, '_session'):
             return self._session
 
-        conf = Config()['sleepcycle']
+        conf = config['sleepcycle']
         email = conf['email']
         password = conf['password']
         self.headers = {'username': email, 'password': password}

@@ -17,3 +17,5 @@ class Config:
     def __getitem__(self, key):
         return self.yaml[key]
 
+
+config = Config()
