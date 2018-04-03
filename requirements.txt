@@ -5,6 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 argh==0.26.2              # via watchdog
+astral==1.6
 attrs==17.3.0             # via pytest
 bleach==2.1.3             # via nbconvert
 certifi==2017.11.5        # via requests
@@ -60,13 +61,14 @@ pytest-mypy==0.3.0
 pytest-watch==4.1.0
 pytest==3.3.1
 python-dateutil==2.7.2    # via jupyter-client, matplotlib, pandas
-pytz==2018.3              # via matplotlib, pandas
+python-utils==2.3.0       # via progressbar2
+pytz==2018.3              # via astral, matplotlib, pandas
 pyyaml==3.12
 pyzmq==17.0.0             # via jupyter-client
 requests==2.18.4
 send2trash==1.5.0         # via notebook
 simplegeneric==0.8.1      # via ipython
-six==1.11.0               # via bleach, cycler, dropbox, html5lib, matplotlib, pip-tools, prompt-toolkit, pytest, python-dateutil, traitlets
+six==1.11.0               # via bleach, cycler, dropbox, html5lib, matplotlib, pip-tools, progressbar2, prompt-toolkit, pytest, python-dateutil, python-utils, traitlets
 terminado==0.8.1          # via notebook
 testpath==0.3.1           # via nbconvert
 tornado==5.0.1            # via ipykernel, jupyter-client, notebook, terminado

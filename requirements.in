@@ -36,3 +36,9 @@ matplotlib
 
 # For data exploring
 jupyterlab
+
+# For progressbar when querying all data from API
+progressbar2
+
+# For checking sunset and sunrise based on dates and GPS coords
+astral
