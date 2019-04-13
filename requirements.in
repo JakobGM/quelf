@@ -5,7 +5,7 @@ dropbox
 pytest
 
 # For static type checking
-mypy==0.560
+mypy
 
 # For the use of TypedDict
 mypy_extensions
