@@ -1,6 +1,7 @@
 import datetime
 import json
 import time
+from pathlib import Path
 from typing import Dict, List
 
 from mypy_extensions import TypedDict
@@ -62,6 +63,7 @@ class Toggl:
         }
         self.details_path = DATA_DIRECTORY / 'toggl' / 'details.json'
         self.details_path.parent.mkdir(parents=True, exist_ok=True)
+        self.tidy_details_path = DATA_DIRECTORY / 'toggl' / 'tidy_details.json'
 
     def fetch(self, path: str, params: Dict[str, str] = {}) -> Dict:
         """
@@ -136,6 +138,26 @@ class Toggl:
 
         # Save the result, automatically saving to disk with the setter property
         self.details = result
+
+    def save_tidy_details(self) -> Path:
+        """
+        Save details in tidy data format.
+
+        The original details data format is optimized such that caching is easy,
+        but the hierarchical nature of the dictionary is difficult to convert
+        to a tidy data frame. This method exists to solve this.
+
+        :return: Path to json file with tidy data content.
+        """
+        details = self.details
+        tidy_data = []
+        for year in details.values():
+            for page in year.values():
+                for time_entry in page['data']:
+                    tidy_data.append(time_entry)
+
+        self.tidy_details_path.write_text(json.dumps(tidy_data))
+        return self.tidy_details_path
 
     @property
     def details(self) -> DetailsDict:
