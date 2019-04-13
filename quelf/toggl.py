@@ -107,13 +107,20 @@ class Toggl:
             details: DetailsDict = self.fetch('/details', params=params)
 
             # Create the dictionary that will store all the pages for this year
-            result[year] = {1: details}
+            result.setdefault(str(year), {})
+            result[str(year)]['1'] = details
+
+            # Skip this year if cache total is equal to year total
+            saved_count = sum(
+                len(page.get('data', []))
+                for page
+                in result[str(year)].values()
+            )
+            if saved_count == details['total_count']:
+                continue
 
             # Calculate how many pages there are in this year
             pages = int(np.ceil(details['total_count'] / details['per_page']))
-
-            if pages == len(result.get(str(year)) or []):
-                continue
 
             # Fetch the remaining pages
             for page in range(2, pages + 1):
@@ -125,7 +132,7 @@ class Toggl:
                     '/details',
                     params={**params, 'page': page},
                 )
-                result[year][page] = details
+                result[str(year)][str(page)] = details
 
         # Save the result, automatically saving to disk with the setter property
         self.details = result
@@ -133,7 +140,10 @@ class Toggl:
     @property
     def details(self) -> DetailsDict:
         """Retrieve detailed time entries."""
-        return json.loads(self.details_path.read_text())
+        try:
+            return json.loads(self.details_path.read_text())
+        except FileNotFoundError:
+            return {}
 
     @details.setter
     def details(self, details: DetailsDict):
