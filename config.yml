@@ -4,3 +4,8 @@ dropbox:
 sleepcycle:
     email: 'your_sleepcycle@email.com'
     password: 'your_sleep_secure_password'
+
+toggl:
+    email: 'your_toggl_email@email.com'
+    api_token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+    workspace_id: 'xxxxxx'
