@@ -148,19 +148,22 @@ sleep <- sleep_json %>%
   enter_object("sleep_sessions") %>%
   gather_keys() %>%
   spread_values(
-    date = jstring("stop_local"),
+    start_date = jstring("start_local"),
+    stop_date = jstring("stop_local"),
     start = jstring("start_local"),
     stop = jstring("stop_local"),
     wakeup_mood = jnumber("rating"),
     heartrate = jstring("heartrate"),
     sleep_quality = jnumber("stats_sq"),
     sleep_duration = jnumber("stats_duration"),
-    steps = jstring("steps")
+    steps = jstring("steps"),
+    sleep_notes = jstring("sleep_notes")
   ) %>%
   mutate(
     heartrate = str_extract(heartrate, "\\d+") %>% as.numeric(),
     steps = str_extract(steps, "\\d+") %>% as.numeric(),
-    date = as.POSIXct(date),
+    start_date = as.POSIXct(start_date),
+    stop_date = as.POSIXct(stop_date),
     start = ymd_hms(start),
     stop = ymd_hms(stop),
     sleep_duration = sleep_duration / (60 * 60)
@@ -168,6 +171,29 @@ sleep <- sleep_json %>%
   select(-document.id, -key) %>%
   as_tibble()
 ```
+
+```{r}
+sleep_notes <- sleep$sleep_notes %>%
+  str_split(pattern = ", ")
+
+note_categories <- sleep_notes %>%
+  unlist() %>%
+  unique() %>%
+  extract(-1)
+
+for (note_category in note_categories) {
+  if (note_category %in% colnames(sleep)) break
+
+  boolean_vector <- vector()
+  for (sleep_note in sleep_notes) {
+    has_note <- note_category %in% sleep_note
+    boolean_vector <- c(boolean_vector, has_note)
+  }
+
+  sleep[[note_category]] <- boolean_vector
+}
+```
+
 
 ```{r}
 days %<>% full_join(sleep, by = "date")
