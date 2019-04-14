@@ -99,11 +99,23 @@ grades <- tibble(
     unique() %>%
     arrange(course) %>%
     unlist(),
+  course_code = c(
+    "EXPH0004", "Org", "TDT4102", "TDT4105", "TDT4120", "TDT4136", "TDT4145",
+    "TEP4105", "TFY4145", "TFY4155", "TFY4165", "TFY4215", "TIØ4146",
+    "TIØ4258", "TMA4100", "TMA4105", "TMA4115", "TMA4120", "TMA4145",
+    "TMA4150", "TMA4180", "TMA4195", "TMA4212", "TMA4215", "TMA4245",
+    "TMA4265", "TMA4267", "TMA4268", "TMA4295", "TMA4300", "TMA4315",
+    "TMA4320", "TMA4850", "TMT4110"
+  ),
   grade = as.ordered(c(
     "A", NA, "A", "A", "A", NA, NA, "B", "A", "A", "B", NA, "A", "B", "A", "A",
     "A", "B", "C", NA, "C", "C", "C", "C", "A", "D", "B", NA, NA, NA, "A", "B",
     NA, "B"
-  ))
+  )),
+  semester = c(
+    1, NA, 4, 1, 5, 7, 10, 3, 1, 2, 3, 10, 9, 3, 1, 2, 2,
+    3, 5, 6, 6, 9, 6, 9, 4, 5, 6, 10, 5, 10, 9, 4, 10, 2
+  )
 )
 ```
 
@@ -125,6 +137,29 @@ courses %>%
   ) +
   xlab("") +
   ylab("Time spent  [hours]")
+```
+
+```{r}
+courses %>%
+  ggplot() +
+  aes(x = reorder(course_code, semester), y = study_hours) +
+  geom_bar(stat = "identity", aes(fill = grade)) +
+  geom_vline(xintercept = 4.5, color = "#DB4801") +
+  geom_vline(xintercept = 8.5, color = "#DB4801") +
+  geom_vline(xintercept = 12.5, color = "#DB4801") +
+  geom_vline(xintercept = 15.5, color = "#DB4801") +
+  geom_vline(xintercept = 18.5, color = "#DB4801") +
+  geom_vline(xintercept = 23.5, color = "#DB4801") +
+  geom_vline(xintercept = 24.5, color = "#DB4801") +
+  geom_vline(xintercept = 28.5, color = "#DB4801") +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(
+    values = c("#536D3D", "#9AB73C", "#E5D017", "#E59E15", "#DB4801"),
+    na.value="gray"
+  ) +
+  xlab("") +
+  ylab("Time spent  [hours]") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r}
