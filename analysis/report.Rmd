@@ -24,6 +24,9 @@ knitr::opts_chunk$set(fig.fullwidth = TRUE)
 library(tidyverse)
 library(tidyjson)
 library(magrittr)
+
+# For use of `ymd_hms`
+library(lubridate)
 ```
 
 
@@ -38,14 +41,20 @@ toggl <- toggl_json %>%
   gather_array() %>%
   spread_values(
     description = jstring("description"),
-    date = jstring("start"),
-    work_duration = jnumber("dur"),
+    start = jstring("start"),
+    end = jstring("end"),
+    study_session_duration = jnumber("dur"),
     project = jstring("project")
   ) %>%
-  mutate(date = as.POSIXct(date)) %>%
-  mutate(work_duration = work_duration / (1000 * 60 * 60)) %>%
+  mutate(
+    date = as.POSIXct(start),
+    start = ymd_hms(start),
+    end = ymd_hms(end),
+    study_session_duration = study_session_duration / (1000 * 60 * 60)
+  ) %>%
   rename(course = "project") %>%
-  dplyr::filter(work_duration < 12)
+  dplyr::filter(study_session_duration < 12) %>%
+  select(-document.id, -array.index)
 ```
 
 ```{r, echo = FALSE}
@@ -99,12 +108,12 @@ grades <- tibble(
 ```{r, fig.width = 14, fig.height = 14}
 courses <- toggl %>%
   group_by(course) %>%
-  summarize(time = sum(work_duration)) %>%
+  summarize(study_hours = sum(study_session_duration)) %>%
   inner_join(grades)
 
 courses %>%
   ggplot() +
-  aes(x = reorder(course, -time), y = time) +
+  aes(x = reorder(course, -study_hours), y = study_hours) +
   geom_bar(stat = "identity", aes(fill = grade)) +
   coord_flip() +
   theme(legend.position = "bottom") +
@@ -118,29 +127,33 @@ courses %>%
 library(zoo)
 days <- toggl %>%
   group_by(date) %>%
-  summarize(work_duration = sum(work_duration)) %>%
-  add_column(rolling_mean = rollmean(.$work_duration, 30, na.pad=TRUE))
+  summarize(study_hours = sum(study_session_duration)) %>%
+  add_column(rolling_mean = rollmean(.$study_hours, 30, na.pad=TRUE))
 
 days %>%
   ggplot() +
-  aes(x = date, y = work_duration) +
-  geom_point(aes(color = work_duration)) +
+  aes(x = date, y = study_hours) +
+  geom_point(aes(color = study_hours)) +
   geom_line(aes(y = rolling_mean), color = "blue", alpha = 0.3) +
   geom_smooth()
 ```
 
 ```{r, cache = TRUE}
+# For use of `str_extract`
 library(stringr)
+
 sleep_json <- read_json(path = "../data/sleep_sessions.json")
 sleep <- sleep_json %>%
   as.tbl_json() %>%
   enter_object("sleep_sessions") %>%
   gather_keys() %>%
   spread_values(
-    date = jstring("stop_global"),
-    rating = jnumber("rating"),
+    date = jstring("stop_local"),
+    start = jstring("start_local"),
+    stop = jstring("stop_local"),
+    wakeup_mood = jnumber("rating"),
     heartrate = jstring("heartrate"),
-    score = jnumber("stats_sq"),
+    sleep_quality = jnumber("stats_sq"),
     sleep_duration = jnumber("stats_duration"),
     steps = jstring("steps")
   ) %>%
@@ -148,6 +161,8 @@ sleep <- sleep_json %>%
     heartrate = str_extract(heartrate, "\\d+") %>% as.numeric(),
     steps = str_extract(steps, "\\d+") %>% as.numeric(),
     date = as.POSIXct(date),
+    start = ymd_hms(start),
+    stop = ymd_hms(stop),
     sleep_duration = sleep_duration / (60 * 60)
   ) %>%
   select(-document.id, -key) %>%
@@ -159,11 +174,11 @@ days %<>% full_join(sleep, by = "date")
 ```
 
 ```{r}
-model <- lm(work_duration ~ sleep_duration, data = days)
+model <- lm(study_hours ~ sleep_duration, data = days)
 days %>%
   filter(sleep_duration > 5) %>%
   ggplot() +
-  aes(x = sleep_duration, y = work_duration) +
+  aes(x = sleep_duration, y = study_hours) +
   geom_point() +
   stat_smooth(method = "lm")
 ```
@@ -171,14 +186,13 @@ days %>%
 ```{r}
 toggl %>%
   group_by(description) %>%
-  summarize(work_duration = sum(work_duration)) %>%
+  summarize(study_hours = sum(study_session_duration)) %>%
   ggplot() +
-  aes(x = reorder(description, work_duration), y = work_duration) +
-  geom_bar(stat = "identity", aes(fill = work_duration)) +
+  aes(x = reorder(description, study_hours), y = study_hours) +
+  geom_bar(stat = "identity", aes(fill = study_hours)) +
   coord_flip()
 ```
 
 ```{r, cols.print = 30}
 days %>% drop_na()
 ```
-
