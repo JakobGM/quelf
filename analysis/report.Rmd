@@ -7,6 +7,7 @@ output:
     theme: sandstone
     df_print: paged
     code_folding: hide
+    css: knitr.css
 ---
 
 ```{r, echo = FALSE}
@@ -16,6 +17,7 @@ knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(results = "hold")
 knitr::opts_chunk$set(fig.fullwidth = TRUE)
+knitr::opts_chunk$set(fig.width = 10)
 ```
 
 # Packages used
@@ -105,7 +107,7 @@ grades <- tibble(
 )
 ```
 
-```{r, fig.width = 14, fig.height = 14}
+```{r, fig.width = 18, fig.height = 8}
 courses <- toggl %>%
   group_by(course) %>%
   summarize(study_hours = sum(study_session_duration)) %>%
@@ -120,7 +122,9 @@ courses %>%
   scale_fill_manual(
     values = c("#536D3D", "#9AB73C", "#E5D017", "#E59E15", "#DB4801"),
     na.value="gray"
-  )
+  ) +
+  xlab("") +
+  ylab("Time spent  [hours]")
 ```
 
 ```{r}
@@ -150,6 +154,7 @@ sleep <- sleep_json %>%
   spread_values(
     start_date = jstring("start_local"),
     stop_date = jstring("stop_local"),
+    date = jstring("stop_local"),
     start = jstring("start_local"),
     stop = jstring("stop_local"),
     wakeup_mood = jnumber("rating"),
@@ -162,6 +167,7 @@ sleep <- sleep_json %>%
   mutate(
     heartrate = str_extract(heartrate, "\\d+") %>% as.numeric(),
     steps = str_extract(steps, "\\d+") %>% as.numeric(),
+    date = as.POSIXct(date),
     start_date = as.POSIXct(start_date),
     stop_date = as.POSIXct(stop_date),
     start = ymd_hms(start),
@@ -196,7 +202,7 @@ for (note_category in note_categories) {
 
 
 ```{r}
-days %<>% full_join(sleep, by = "date")
+days %<>% full_join(sleep)
 ```
 
 ```{r}
@@ -223,7 +229,7 @@ toggl %>%
 days %>% drop_na()
 ```
 
-```{r}
+```{r, fig.fullwidth = TRUE, fig.width = 20, fig.height = 5}
 sleep %>%
   mutate(
     in_bed = ((hour(start) + minute(start) / 60) - 18) %% 24,
@@ -262,6 +268,17 @@ sleep %>%
     name = "Sleep trend",
     labels = c("Going to bed", "Waking up")
   ) +
-  theme_fivethirtyeight()
+  theme(legend.position = "bottom") +
+  theme_minimal()
 ```
 
+<style>
+img {
+    max-width: 100vw;
+    position: relative;
+    left: 50%;
+    -moz-transform: translateX(-50%);
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+}
+</style>
