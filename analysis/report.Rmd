@@ -121,6 +121,14 @@ grades <- tibble(
 
 ```{r, fig.width = 18, fig.height = 8}
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
+colors <- list(
+  green = "#536D3D",
+  light_green = "#9AB73C",
+  orange = "#E5D017",
+  dark_orange = "#E59E15",
+  red = "#DB4801"
+)
+
 courses <- toggl %>%
   group_by(course) %>%
   summarize(study_hours = sum(study_session_duration)) %>%
@@ -133,7 +141,7 @@ courses %>%
   coord_flip() +
   theme(legend.position = "bottom") +
   scale_fill_manual(
-    values = c("#536D3D", "#9AB73C", "#E5D017", "#E59E15", "#DB4801"),
+    values = as.vector(unlist(colors)),
     na.value="gray"
   ) +
   ylab("Time spent  [hours]") +
@@ -149,17 +157,17 @@ courses %>%
   ggplot() +
   aes(x = reorder(course_code, semester), y = study_hours) +
   geom_bar(stat = "identity", aes(fill = grade)) +
-  geom_vline(xintercept = 4.5, color = "#DB4801") +
-  geom_vline(xintercept = 8.5, color = "#DB4801") +
-  geom_vline(xintercept = 12.5, color = "#DB4801") +
-  geom_vline(xintercept = 15.5, color = "#DB4801") +
-  geom_vline(xintercept = 18.5, color = "#DB4801") +
-  geom_vline(xintercept = 23.5, color = "#DB4801") +
-  geom_vline(xintercept = 24.5, color = "#DB4801") +
-  geom_vline(xintercept = 28.5, color = "#DB4801") +
+  geom_vline(xintercept = 4.5, color = colors$red) +
+  geom_vline(xintercept = 8.5, color = colors$red) +
+  geom_vline(xintercept = 12.5, color = colors$red) +
+  geom_vline(xintercept = 15.5, color = colors$red) +
+  geom_vline(xintercept = 18.5, color = colors$red) +
+  geom_vline(xintercept = 23.5, color = colors$red) +
+  geom_vline(xintercept = 24.5, color = colors$red) +
+  geom_vline(xintercept = 28.5, color = colors$red) +
   theme(legend.position = "bottom") +
   scale_fill_manual(
-    values = c("#536D3D", "#9AB73C", "#E5D017", "#E59E15", "#DB4801"),
+    values = as.vector(unlist(colors)),
     na.value="gray"
   ) +
   xlab("") +
@@ -183,6 +191,25 @@ days %>%
   geom_line(aes(y = rolling_mean), color = "blue", alpha = 0.3) +
   geom_smooth()
 ```
+
+```{r}
+binwidth <- 0.5
+days %>%
+  ggplot() +
+  aes(x = study_hours, binwidth * ..density..) +
+  geom_histogram(
+    aes(fill = ..density..),
+    binwidth = binwidth,
+    color = "white"
+  ) +
+  geom_vline(
+    aes(xintercept = mean(days$study_hours), color = "Mean"),
+    size = 3
+  ) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_x_continuous(breaks = 0:12)
+```
+
 
 ```{r, cache = TRUE}
 # For use of `str_extract`
