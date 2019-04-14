@@ -265,33 +265,6 @@ sleep <- sleep_json %>%
 ```
 
 ```{r}
-android_json <- read_json(path = "../data/sleep/android.json")
-android <- android_json %>%
-  as.tbl_json() %>%
-  gather_array() %>%
-  spread_values(
-    start = jstring("from"),
-    stop = jstring("to"),
-    sleep_duration = jnumber("hours")
-  ) %>%
-  mutate(
-    start = dmy_hm(start),
-    stop = dmy_hm(stop)
-  ) %>%
-  mutate(
-    date = as.POSIXct(start),
-    start_date = as.POSIXct(start),
-    stop_date = as.POSIXct(stop)
-  ) %>%
-  add_column(source = "Android")
-
-if (!("Android" %in% sleep$source)) {
-  sleep %<>% bind_rows(android)
-}
-```
-
-
-```{r}
 sleep_notes <- sleep$sleep_notes %>%
   str_split(pattern = ", ")
 
@@ -313,6 +286,32 @@ for (note_category in note_categories) {
 }
 ```
 
+```{r}
+android_json <- read_json(path = "../data/sleep/android.json")
+android <- android_json %>%
+  as.tbl_json() %>%
+  gather_array() %>%
+  spread_values(
+    start = jstring("from"),
+    stop = jstring("to"),
+    sleep_duration = jnumber("hours")
+  ) %>%
+  mutate(
+    start = dmy_hm(start),
+    stop = dmy_hm(stop)
+  ) %>%
+  mutate(
+    date = as.POSIXct(start),
+    start_date = as.POSIXct(start),
+    stop_date = as.POSIXct(stop)
+  ) %>%
+  add_column(source = "Android") %>%
+  select(-document.id, -array.index)
+
+if (!("Android" %in% sleep$source)) {
+  sleep %<>% bind_rows(android)
+}
+```
 
 ```{r}
 days %<>% full_join(sleep)
@@ -390,6 +389,19 @@ sleep %>%
   theme(legend.position = "bottom") +
   theme_minimal()
 ```
+
+```{r, fig.width = 16, fig.height = 9}
+sleep %>%
+  mutate(rolling_mean = rollmean(sleep_duration, 30, na.pad = TRUE)) %>%
+  filter(sleep_duration > 4) %>%
+  ggplot() +
+  aes(x = date, y = sleep_duration) +
+  geom_point(aes(color = sleep_duration), alpha = 0.5) +
+  geom_smooth(size = 3) +
+  geom_line(aes(y = rolling_mean)) +
+  scale_y_continuous(breaks = 1:15)
+```
+
 
 <style>
 img {
