@@ -120,6 +120,7 @@ grades <- tibble(
 ```
 
 ```{r, fig.width = 18, fig.height = 8}
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
 courses <- toggl %>%
   group_by(course) %>%
   summarize(study_hours = sum(study_session_duration)) %>%
@@ -135,8 +136,12 @@ courses %>%
     values = c("#536D3D", "#9AB73C", "#E5D017", "#E59E15", "#DB4801"),
     na.value="gray"
   ) +
+  ylab("Time spent  [hours]") +
   xlab("") +
-  ylab("Time spent  [hours]")
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
 ```
 
 ```{r}
@@ -163,7 +168,9 @@ courses %>%
 ```
 
 ```{r}
+# For `rollmean`
 library(zoo)
+
 days <- toggl %>%
   group_by(date) %>%
   summarize(study_hours = sum(study_session_duration)) %>%
