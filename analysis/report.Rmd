@@ -222,3 +222,46 @@ toggl %>%
 ```{r, cols.print = 30}
 days %>% drop_na()
 ```
+
+```{r}
+sleep %>%
+  mutate(
+    in_bed = ((hour(start) + minute(start) / 60) - 18) %% 24,
+    out_of_bed = ((hour(stop) + minute(stop) / 60) - 18) %% 24
+  ) %>%
+  ggplot() +
+  aes(x = stop_date) +
+  geom_segment(
+    aes(
+      x = stop_date,
+      xend = stop_date,
+      y = in_bed,
+      yend = out_of_bed,
+      color = sleep_duration
+    )
+  ) +
+  geom_smooth(
+    aes(y = in_bed, linetype = "Going to bed"),
+    fill = "#E59E15",
+    color = "#77AB43",
+    alpha = 0.3
+  ) +
+  geom_smooth(
+    aes(y = out_of_bed, linetype = "Out of bed"),
+    fill = "#E59E15",
+    color = "#77AB43",
+    alpha = 0.3
+  ) +
+  scale_y_continuous(
+    name = "Time of day",
+    breaks = (1:24 - 18) %% 24,
+    labels = 1:24
+  ) +
+  scale_linetype_manual(
+    values = c("dotted", "dashed"),
+    name = "Sleep trend",
+    labels = c("Going to bed", "Waking up")
+  ) +
+  theme_fivethirtyeight()
+```
+
