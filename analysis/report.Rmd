@@ -193,6 +193,9 @@ days %>%
 ```
 
 ```{r}
+# For use of `percent_format()`
+library(scales)
+
 binwidth <- 0.5
 days %>%
   ggplot() +
