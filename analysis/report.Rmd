@@ -214,6 +214,36 @@ days %>%
 ```
 
 ```{r}
+library(reshape2)
+hours_per_day <- toggl %>%
+  group_by(date) %>%
+  summarize(study_hours = sum(study_session_duration))
+
+hours_per_category_per_day <- toggl %>%
+  group_by(date, description) %>%
+  summarize(category_hours = sum(study_session_duration)) %>%
+  ungroup()
+
+categories_per_day <- hours_per_day %>%
+  inner_join(hours_per_category_per_day) %>%
+  group_by(date) %>%
+  spread(description, category_hours, fill = 0)
+
+binwidth <- 0.5
+categories_per_day %>%
+  gather(category, hours, colnames(.)[-c(1:2)]) %>%
+  group_by(group = cut(study_hours, breaks = seq(0, 12, by=0.5))) %>%
+  ungroup() %>%
+  mutate(group = (as.numeric(group) - 1) / 2) %>%
+  ggplot() +
+  aes(x = group + 0.25) +
+  aes(y = hours) +
+  aes(fill = category) +
+  geom_col() +
+  scale_x_continuous(breaks = seq(0, 12))
+```
+
+```{r}
 library(RColorBrewer)
 toggl %>%
   group_by(course, description) %>%
