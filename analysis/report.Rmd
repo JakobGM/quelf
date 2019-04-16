@@ -305,6 +305,42 @@ grades <- tibble(
       "TMA4265", "TMA4267", "TMA4268", "TMA4295", "TMA4300", "TMA4315",
       "TMA4320", "TMA4850", "TMT4110"
     ),
+    course_name = c(
+      "Science, Philosophy & Ethics",
+      "Organization",
+      "Object Oriented Programming (C++)",
+      "Computer Science Into (Matlab)",
+      "Algorithms and Data Structures",
+      "Introduction to Artificial Intelligence",
+      "Data Modelling and Databases",
+      "Fluid Mechanics",
+      "Mechanical Physics",
+      "Electromagnetism",
+      "Thermodynamics",
+      "Introduction to Quantum Physics",
+      "Finance for Scientific Students",
+      "Technical Leadership",
+      "Univariate Calculus",
+      "Multivariate Calculus",
+      "Linear Algebra",
+      "Complex Calculus and Transformations",
+      "Linear Methods",
+      "Algebra",
+      "Optimization I",
+      "Mathematical Modelling",
+      "Numerical Solutions to Differential Equations",
+      "Numerical Mathematics",
+      "Introductory Statistics",
+      "Stochastic Processes",
+      "Linear Statistical models",
+      "Statistical Learning",
+      "Statistical Inference",
+      "Computer Intensive Statistical Methods",
+      "Generalized Linear Models",
+      "Introduction to Scientific Computation",
+      "Experts in Teams",
+      "Chemistry"
+    ),
     grade = as.ordered(c(
       "A", NA, "A", "A", "A", NA, NA, "B", "A", "A", "B", NA, "A", "B", "A", "A",
       "A", "B", "C", NA, "C", "C", "C", "C", "A", "D", "B", NA, NA, NA, "A", "B",
@@ -318,7 +354,7 @@ grades <- tibble(
   arrange(semester)
 
 # Print the entire tibble
-grades
+grades %>% select(semester, course_code, course_name, grade)
 ```
 
 ## Relation between time spent and final grade
