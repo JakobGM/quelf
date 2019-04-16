@@ -1,6 +1,6 @@
 ---
-title: Time used as a student
-author: Jakob Gerhard Martinussen
+title: Visualizing 5 Years of University Education
+author: Jakob Gerhard Martinussen - @JakobGM
 date: April 14th, 2016
 output:
   html_document:
@@ -242,6 +242,7 @@ Until now we have only looked at aggregate statistics, but has the amount of wor
 # For `rollmean`
 library(zoo)
 
+rsi_start <- as.POSIXct("2016-01-15 23:00:00 UTC")
 sick_leave <- tibble(
   interval = c(
     as.POSIXct("2017-12-14 23:00:00 UTC"),
@@ -257,17 +258,29 @@ days %>%
       x = interval,
       ymin = 0,
       ymax = Inf,
-      y = 1,
-      fill = "RSI sick leave"
+      y = 1
     ),
-    alpha = 0.5
+    alpha = 0.5,
+    fill = colors$red
+  ) +
+  annotate(
+    "text",
+    x = mean(sick_leave$interval),
+    y = 9,
+    label = "RSI\n Sick Leave",
+    color = colors$red
   ) +
   geom_vline(
-    aes(
-      xintercept = as.POSIXct("2016-01-15 23:00:00 UTC"),
-      linetype = "RSI problems start"
-    ),
+    aes(xintercept = rsi_start),
     color = colors$red
+  ) +
+  annotate(
+    "text",
+    x = rsi_start + 1000000,
+    y = 9,
+    label = "First RSI Sympton",
+    color = colors$red,
+    hjust = 0
   ) +
   aes(x = date, y = study_hours) +
   geom_point(aes(color = study_hours), show.legend = FALSE) +
