@@ -343,17 +343,35 @@ days %>%
   theme(legend.position = "bottom")
 ```
 
-My studies at the university started with quite long days.
-The work was unfamiliar and required long days; I remember often sitting from 8AM to 8PM in the computer lab.
-As I grew more confident over time, the required work decreased.
+There are 4 distinct phases here:
 
-That continued for 3 semesters until I got a bad case of [repetitive stress injury](https://en.wikipedia.org/wiki/Repetitive_strain_injury) in January, 2016.
-I had been working too much with too few breaks and that eventually had its consequences.
-The RSI issues continued for a long time, getting worse and worse, culminating in a doctor-recommended sick leave in December, 2017.
-I had to drop out of my studies right before my final exams and take the entire next semester off, effectively setting me back one year.
+***
 
-After the long break I finally got better and became able to use my hands again.
-Since then I have been slowly increasing the work load, hopefully with more care taken with respect to my health.
+**2014 $\rightarrow$ 2016**:  
+  The start of my studies.
+  The work was unfamiliar and required a lot of time investment.
+  As I became more comfortable (and got a part time job) the work slowly decreased over time.
+
+**2016 $\rightarrow$ 2018**:  
+  The start of my studies.
+  The work was unfamiliar and required a lot of time investment.
+  As I became more comfortable (and got a part time job) the work slowly decreased over time.
+
+**2018 $\rightarrow$ mid-2018**:  
+  A doctor-recommended sick leave in December, 2017.
+  I had to drop out of my studies right before my final exams and take the entire next semester off, effectively setting me back one year.
+
+**mid-2018 $\rightarrow$ present**:  
+  Continuing where I left the studies off.
+  Since then I have been slowly increasing the work load, hopefully with more self-care.
+
+***
+
+My two cents regarding RSI issues: if you at any point still feel pain or tiredness in your arms when you wake up the day after a heavy work session, take an immediate break.
+Don't start working until you wake up and feel completely normal again.
+If the frequency of RSI pains increase over time, find a doctor which takes the issue seriously.
+My first doctor basically described a healthy dose of "putting on a brave face" and a not-so-healthy dose of ever-increasing strong painkillers.
+I have been tracking my RSI pains on a crude 0-2 scale since the beginning, which we will come back to later.
 
 # Grades
 
