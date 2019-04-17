@@ -69,13 +69,14 @@ toggl <- toggl_json %>%
   gather_array() %>%
   spread_values(
     description = jstring("description"),
+    date = jstring("start"),
     start = jstring("start"),
     end = jstring("end"),
     study_session_duration = jnumber("dur"),
     project = jstring("project")
   ) %>%
   mutate(
-    date = as.POSIXct(start),
+    date = date(date),
     start = ymd_hms(start),
     end = ymd_hms(end),
     study_session_duration = study_session_duration / (1000 * 60 * 60)
@@ -265,12 +266,9 @@ colors <- list(
   red = "#DB4801"
 )
 
-rsi_start <- as.POSIXct("2016-01-15 23:00:00 UTC")
+rsi_start <- date("2016-01-15")
 sick_leave <- tibble(
-  interval = c(
-    as.POSIXct("2017-12-14 23:00:00 UTC"),
-    as.POSIXct("2018-08-03 23:00:00 UTC")
-  )
+  interval = c(date("2017-12-14"), date("2018-08-03"))
 )
 
 days %>%
@@ -299,9 +297,9 @@ days %>%
   ) +
   annotate(
     "text",
-    x = rsi_start + 1000000,
+    x = rsi_start + 10,
     y = 9,
-    label = "First RSI Sympton",
+    label = "First RSI\nSymptom",
     color = colors$red,
     hjust = 0
   ) +
@@ -568,7 +566,6 @@ sleep <- sleep_json %>%
   spread_values(
     start_date = jstring("start_local"),
     stop_date = jstring("stop_local"),
-    date = jstring("stop_local"),
     start = jstring("start_local"),
     stop = jstring("stop_local"),
     wakeup_mood = jnumber("rating"),
@@ -581,9 +578,8 @@ sleep <- sleep_json %>%
   mutate(
     heartrate = str_extract(heartrate, "\\d+") %>% as.numeric(),
     steps = str_extract(steps, "\\d+") %>% as.numeric(),
-    date = as.POSIXct(date),
-    start_date = as.POSIXct(start_date),
-    stop_date = as.POSIXct(stop_date),
+    start_date = date(start_date),
+    stop_date = date(stop_date),
     start = ymd_hms(start),
     stop = ymd_hms(stop),
     sleep_duration = sleep_duration / (60 * 60)
@@ -626,12 +622,9 @@ android <- android_json %>%
   ) %>%
   mutate(
     start = dmy_hm(start),
-    stop = dmy_hm(stop)
-  ) %>%
-  mutate(
-    date = as.POSIXct(stop),
-    start_date = as.POSIXct(start),
-    stop_date = as.POSIXct(stop)
+    stop = dmy_hm(stop),
+    start_date = date(start),
+    stop_date = date(stop)
   ) %>%
   add_column(source = "Android") %>%
   select(-document.id, -array.index)
@@ -641,7 +634,7 @@ if (!("Android" %in% sleep$source)) {
 }
 
 # Add the final data set to the day summary data
-days %<>% full_join(sleep, by = "date")
+days %<>% full_join(sleep, by = c("date" = "stop_date"))
 
 # Show part of data in report
 sleeps <- dim(sleep)[1]
@@ -706,7 +699,7 @@ sleep %>%
   mutate(rolling_mean = rollmean(sleep_duration, 30, na.pad = TRUE)) %>%
   filter(sleep_duration > 4) %>%
   ggplot() +
-  aes(x = date, y = sleep_duration) +
+  aes(x = stop_date, y = sleep_duration) +
   geom_point(aes(color = sleep_duration), alpha = 0.5) +
   geom_smooth(size = 3) +
   geom_line(aes(y = rolling_mean)) +
@@ -716,7 +709,7 @@ sleep %>%
 ## Correlation between work amount and sleep duration
 
 ```{r}
-days %<>% inner_join(sleep, by = "date")
+days %<>% inner_join(sleep, by = c("date" = "stop_date"))
 model <- lm(study_hours ~ sleep_duration, data = days)
 days %>%
   select(sleep_duration, study_hours) %>%
