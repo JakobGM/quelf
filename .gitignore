@@ -4,3 +4,10 @@ data
 **/__pycache__
 tags
 config.yml
+packrat/lib*/
+**/*.html
+**/*.md
+**/*.pdf
+**/*.tar.gz
+**/*.png
+**cache*
