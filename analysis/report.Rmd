@@ -515,7 +515,7 @@ courses %>%
 
 ## Grade Relative to Grade Distributions
 
-```{r}
+```{r, fig.height = 7}
 # Calculate lower and upper percentile for my grade groups.
 # Quite ugly, but it works.
 grade_cummulatives <- grades[, letters[1:6]] %>%
@@ -565,7 +565,12 @@ grade_intervals <- tibble(
     by = "course_name"
   )
 
-size <- 5
+# Remove the grade interval that my grades fall within
+grade_intervals <- grade_cummulatives %>%
+  select(course_name, grade) %>%
+  anti_join(grade_intervals, .)
+
+size <- 6
 grade_cummulatives %>%
   ggplot() +
   aes(x = reorder(course_name, -study_hours)) +
@@ -576,8 +581,8 @@ grade_cummulatives %>%
       ymax = ymax,
       color = grade
     ),
-    size = size,
-    alpha = 0.3
+    size = 0.2 * size,
+    alpha = 0.9
   ) +
   geom_linerange(
     aes(
@@ -585,7 +590,7 @@ grade_cummulatives %>%
       ymax = upper_grade_percentile,
       color = grade,
     ),
-    size = size
+    size = 0.85 * size
   ) +
   geom_linerange(
     aes(
@@ -599,7 +604,7 @@ grade_cummulatives %>%
   scale_y_continuous(breaks = seq(0, 1, 0.25), labels = percent_format()) +
   scale_color_manual("", values = as.vector(unlist(colors))) +
   scale_x_discrete(expand = c(0.02, 0, 0.08, 0)) +
-  annotate("text", y = 1.15, x = 26.4, label = "Time Investment", color = "gray") +
+  annotate("text", y = 1.15, x = 26, label = "Time Investment", color = "gray") +
   xlab("") +
   ylab("") +
   coord_flip() +
