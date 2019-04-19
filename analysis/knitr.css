@@ -1,0 +1,8 @@
+img {
+    max-width: 100vw;
+    position: relative;
+    left: 50%;
+    -moz-transform: translateX(-50%);
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+}
