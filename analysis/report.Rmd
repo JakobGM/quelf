@@ -244,10 +244,7 @@ toggl %>%
 The work is dominated by the `Hand-in` category.
 This comes as no surprise to me.
 Most of the semester is spent handing in one project after another, often with little time in between.
-
-I have had little issues with this as it is one of the most efficient ways to learn how to actually *apply* the curriculum, but it often leaves little time for exam preparations at the end of the semester.
-As the criteria for a good grade on the final exam is often entirely unrelated to the material learned from obligatory projects, I often feel that the final grade does not reflect the time spent on the course.
-We will come back to the relationship between time spent on a course and the final grade further down.
+I will come back to how this often adversely affects my final grade further down.
 
 ## Do certain type of work result in longer days?
 
@@ -408,7 +405,7 @@ grades <- tibble(
       "Electromagnetism",
       "Thermodynamics",
       "Introduction to Quantum Physics",
-      "Finance for Scientific Students",
+      "Finance for Science Students",
       "Technical Leadership",
       "Univariate Calculus",
       "Multivariate Calculus",
@@ -510,11 +507,13 @@ grades %>%
   ylab("")
 ```
 
-But what makes this data really interesting is when we combine it with the time tracking data.
-Many, including myself, think that hard work usually pays off, but is that the case here?
+But what makes this data really interesting is when we combine it with the time tracking data...
 
 
 ## Relation between time spent and final grade
+
+We start by testing the first hypothesis that falls to mind, namely *hard work pays off*.
+Many, including myself, think that time investment is the strongest predictor for the final grade in a course, but is that really the case here?
 
 ```{r}
 courses <- toggl %>%
@@ -523,6 +522,7 @@ courses <- toggl %>%
   inner_join(grades)
 
 courses %>%
+  drop_na(grade) %>%
   ggplot() +
   aes(x = reorder(course_name, -study_hours), y = study_hours) +
   geom_bar(stat = "identity", aes(fill = grade)) +
@@ -541,7 +541,17 @@ courses %>%
   )
 ```
 
+If the hypothesis would hold *perfectly* we would expect the colors to be arranged in order, going from orange on the top to dark green on the bottom.
+This is obviously not the case here, but there are some minor trends.
+*All* courses with more than 180 hours of time investment yielded a final grade of A, while the courses below this limit show a greater degree of variability.
+
 ## Grade Relative to Grade Distributions
+
+So we just concluded that time investment alone is not a perfect predictor for final grades.
+Perhaps some courses are more difficult than others?
+In order to account for this possibility we may investigate the performance *relative* to other students that participated in the same exam.
+Luck has it that grade statistics off all the courses at NTNU are available through a [JSON API](https://grades.no/api/).
+We will now plot all the grade percentiles for my courses (matching the specific semesters) while indicating which percentile range I belong to.
 
 ```{r, fig.height = 7}
 # Calculate lower and upper percentile for my grade groups.
@@ -640,9 +650,26 @@ grade_cummulatives %>%
   guides(col = guide_legend(nrow = 1))
 ```
 
+In a perfect world, the wider bars indicating my percentile range would slowly shift towards the right as more time is being spent on the courses.
+Unfortunately this is yet again not the case.
+
+What this plot rather *does* tell us is that grades are entirely non-comparable.
+In a perfect world you would expect two truths to hold:
+
+#. Each grade letter indicates a percentile range of which the students belong to.
+
+   This is not the case, since my C in "Numerical Solutions to Differential Equations" is in the bottom third of the student population, while "Linear Methods" is at the top ~75%.
+   I know for a fact that these two courses had an almost perfect overlap in which students that were enrolled, so a student sample difference is not enough to explain for this fact.
+
+#. Time investment is proportional to the percentage range of the final grade.
+
+   My 26 hours of time investment in "Finance for Science Students" yielded an A, while 125 hours were required for "General Linear Models" which also yielded an A during the same semester. That is almost a 5-to-1 difference!
 
 
 ## Trend of work amount and grades over time
+
+What we have ignored so far is *time*.
+Have my grade-relative performance changed over time?
 
 ```{r, fig.cap = "The red lines delineate each semester."}
 semester_position <- courses %>%
@@ -678,15 +705,76 @@ courses %>%
     na.value="gray"
   ) +
   scale_hours(y = TRUE) +
-  xlab("") +
-  ylab("Time Spent on Course") +
   ylim(0, 240) +
   theme(
     axis.text.x = element_text(angle = 90),
     panel.grid.minor = element_blank(),
     panel.grid.major.x = element_blank()
+  ) +
+  labs(
+    x = "",
+    y = "Time Spent on Course",
+    caption = "The gray lines delineate each semester."
   )
 ```
+
+There is no way around the fact that my grades have gotten worse over time.
+Getting a part-time job, my RSI issues, and generally less time investment over time may all be contributing factors to this, but...
+
+## Courses with Less Students Are More Difficult
+
+I think the most important factor is the enrollment size of the courses.
+The early courses that were obligatory for *all* students at the university were much less competitive than my more recent, higher-level courses at the Mathematical Institute.
+There is admittedly proportionally more students smarter than me as time goes on, making it harder to stand out on the exam.
+To argue for this point, take a look at the following plot:
+
+```{r, fig.height = 8}
+class_size <- toggl %>%
+  group_by(course) %>%
+  summarize(study_hours = sum(study_session_duration)) %>%
+  inner_join(grades, by = "course") %>%
+  group_by(course) %>%
+  mutate(class_size = a + b + c + d + f) %>%
+  select(-a, -b, -c, -d, -e, -f, -study_hours, -grade, -course_name, -semester) %>%
+  inner_join(grade_cummulatives, by = "course")
+
+text_include <- c(
+  "Finance for Science Students",
+  "Mechanical Physics",
+  "Univariate Calculus",
+  "Introduction to IT (Matlab)"
+)
+class_size %>%
+  ggplot() +
+  aes(x = class_size, y = study_hours, color = grade) +
+  geom_point(size = 6) +
+  geom_text(
+    data = class_size %>% filter(course_name %in% text_include),
+    aes(label = course_name, y = study_hours + 7),
+    hjust = "inward"
+  ) +
+  geom_text(
+    aes(label = semester),
+    color = "white",
+    size = 4
+  ) +
+  scale_color_manual(values = as.vector(unlist(colors))) +
+  scale_hours(y = TRUE, limits = c(0, NA)) +
+  xlim(0, 1450) +
+  labs(
+    x = "Number of Students Enrolled",
+    y = "Total Study Hours",
+    caption = "The white numbers indicate the semester"
+  ) +
+  theme(legend.position = "right")
+```
+
+This strengthens my belief in that small, specialized courses are more difficult on average.
+The less the enrollment size, the more work is required in order to achieve an A, and vice versa.
+Taking a look at the white number labels, which indicate which semester the course was taken, it looks like a causal time trend is less likely.
+
+*PS: The "Finance for Science Students" is a great outlier here. The professor has basically been giving the same exam for a couple of decades, and I took advantage of that fact.*
+
 
 ## Does the type of work matter for the final grade?
 
@@ -772,7 +860,6 @@ normalized %>%
   )
 ```
 
-Take care of the fact that the category colors have changed, the more red the color, the more time has been spent within the respective category.
 Notice that the `Hand-in` category is vastly under-represented in the `A` column.
 This confirms my long held suspicion of the fact that courses that require a lot of project work leaves less time for exam preparations which has negative consequences.
 
