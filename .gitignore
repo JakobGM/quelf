@@ -11,3 +11,4 @@ packrat/lib*/
 **/*.tar.gz
 **/*.png
 **cache*
+.Rproj.user
