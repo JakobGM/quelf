@@ -8,6 +8,8 @@ output:
     df_print: paged
     code_folding: hide
     css: knitr.css
+    toc: true
+    toc_float: true
 ---
 
 ```{r, echo = FALSE}
@@ -56,7 +58,7 @@ library(lubridate)
 
 # Introduction
 
-A master's degree is a 5 year long endeavour that is often summarized in a measly, one-page grade sheet.
+A master's degree is a 5 year long endeavour that often is summarized in a measly, one-page grade sheet.
 That feels quite unsatisfying as there are so many aspects of an education that ends up being entirely neglected.
 As a student that is nearing the end of my education in "Applied Physics and Mathematics" with a specialization in statistics at [NTNU](https://ntnu.edu) I want to rectify this problem
 

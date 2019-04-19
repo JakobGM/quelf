@@ -6,3 +6,12 @@ img {
     -webkit-transform: translateX(-50%);
     transform: translateX(-50%);
 }
+
+@media screen and (min-width: 800px) {
+  #TOC {
+    position: fixed;
+    left: 3em;
+    top: 3em;
+    overflow:auto;
+  }
+}
