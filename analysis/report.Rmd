@@ -927,6 +927,14 @@ While having in mind that I might be too biased towards my own work preferences,
 
 # Sleep
 
+I get the impression that many people have this romanticized view of college consisting of frantic all-nighters at the end of the semester, cramming for exams.
+For me the exact *opposite* has been true.
+I have here collected my sleep data from two different sources: [SleepCycle](https://www.sleepcycle.com/) and [Sleep as Android](https://sleep.urbandroid.org/).
+The former app is really cool since it allows you to register boolean data points at the end of each day before you go to bed.
+That way you can keep track of stuff like coffee consumption, RSI issues, and so on.
+
+The data looks like this:
+
 ```{r, cache = TRUE}
 # For use of `str_extract`
 library(stringr)
@@ -1015,9 +1023,12 @@ sleeps <- dim(sleep)[1]
 sleep[100:105, c("start", "stop", "Drank coffee", "RSI Pains")]
 ```
 
-## Part of the spent sleeping
+## Sleep Trend over Time
 
-```{r, fig.fullwidth = TRUE, fig.width = 20, fig.height = 5}
+This kind of data lends it very well to trend visualization.
+That is what we will do here, plotting the time I went to bed and woke up over time:
+
+```{r, fig.fullwidth = TRUE, fig.width = 20, fig.height = 4}
 time_of_day <- trans_new(
   "time_of_day",
   transform = function(x) {(x - 18) %% 24},
@@ -1067,9 +1078,16 @@ sleep %>%
   theme(legend.position = "none")
 ```
 
-## Sleep duration duration over time
+This data shows some clear month-over-month trends.
+Periods where I am waking up early every day are often followed up with a large correction in the other direction, more than what [regression to the mean](https://en.wikipedia.org/wiki/Regression_toward_the_mean) seems to account for.
 
-```{r, fig.width = 16, fig.height = 9}
+## Sleep Duration Trend over Time
+
+While *when* I sleep portrays some clear trends, what about *how long* I sleep?
+If Matthew Walker's *[Why We Sleep](https://www.goodreads.com/book/show/34466963-why-we-sleep)* has taught me anything it is that I should sleep on average eight to nine hours a day.
+Let's see:
+
+```{r, fig.width = 20, fig.height = 4}
 sleep %>%
   mutate(rolling_mean = rollmean(sleep_duration, 30, na.pad = TRUE)) %>%
   filter(sleep_duration > 4) %>%
@@ -1085,20 +1103,98 @@ sleep %>%
   theme(legend.position = "none")
 ```
 
-## Correlation between work amount and sleep duration
+On average I sleep `r round(mean(sleep$sleep_duration), 2)` hours a night.
+This is most likely enough, although there are *some* outliers.
 
-```{r, eval = FALSE, echo = FALSE}
-days %<>% inner_join(sleep, by = c("date" = "stop_date"))
-model <- lm(study_hours ~ sleep_duration, data = days)
-days %>%
+## Correlation Between Sleep and Work
+
+Is there any correlation between how many hours I work and how many hours I slept the night before?
+Let's apply a linear model:
+
+```{r}
+sleep_days <- days %>%
+  select(date, study_hours) %>%
+  inner_join(sleep, by = c("date" = "stop_date"))
+
+duration_model <- lm(study_hours ~ sleep_duration, data = sleep_days)
+duration_r2 <- summary(duration_model)$r.squared
+duration_coefficient <- coefficients(duration_model)[2]
+
+model_theme <- list(
+  xaxis = scale_hours(breaks = 1:24),
+  yaxis = scale_hours(y = TRUE, breaks = 0:24),
+  theme = theme(panel.grid.minor = element_blank()),
+  ylab = ylab("Total Study Hours")
+)
+
+sleep_days %>%
   select(sleep_duration, study_hours) %>%
   filter(sleep_duration > 5) %>%
   ggplot() +
   aes(x = sleep_duration, y = study_hours) +
   geom_point() +
   stat_smooth(method = "lm") +
-  scale_hours()
+  xlab("Sleep duration") +
+  model_theme
 ```
+
+For every additional hour I sleep I am expected to work `r round(-duration_coefficient, 2)` hours less.
+The regression is significant, but explains very little of the variability in the data.
+
+Perhaps *when* I wake up is a better predictor?
+
+```{r}
+wakeups <- sleep_days %>%
+  filter(sleep_duration > 5) %>%
+  mutate(wakeup = hour(stop) + minute(stop) / 60)
+
+wakeup_model <- lm(study_hours ~ wakeup, data = wakeups)
+wakeup_r2 <- summary(wakeup_model)$r.squared
+wakeup_coefficient <- coefficients(wakeup_model)[2]
+
+wakeups %>%
+  ggplot() +
+  aes(x = wakeup, y = study_hours) +
+  geom_point() +
+  stat_smooth(method = "lm") +
+  xlab("Wake Up Time") +
+  model_theme
+```
+
+This is marginally better model, for every hour I delay waking up I can expect on average `r round(-wakeup_coefficient, 2)` hours less of effective work that day.
+
+But what I think is *really* occurring here is that when I *start* the work day is what matters.
+Let's check this:
+
+```{r}
+work_starts <- toggl %>%
+  group_by(date) %>%
+  summarize(
+    first_entry = min(start),
+    study_hours = sum(study_session_duration)
+  ) %>%
+  mutate(
+    work_start = hour(first_entry) + minute(first_entry) / 60
+  ) %>%
+  select(-first_entry)
+
+work_start_model <- lm(study_hours ~ work_start, data = work_starts)
+work_start_r2 <- summary(work_start_model)$r.squared
+work_start_coefficient <- coefficients(work_start_model)[2]
+
+work_starts %>%
+  ggplot() +
+  aes(x = work_start, y = study_hours) +
+  geom_point() +
+  stat_smooth(method = "lm") +
+  xlab("Start Of Workday") +
+  model_theme
+```
+
+Yes, this is the best model so far.
+It explains `r round(100 * work_start_r2)`% of the variability in the data compared to 3% and 6% in the previous models.
+For every hour I delay starting the work day I can expect to have `r round(-work_start_coefficient, 2)` less effective hours of work that same day.
+Might be common sense, but there you have it!
 
 
 <style>
