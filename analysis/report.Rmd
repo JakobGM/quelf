@@ -377,7 +377,8 @@ I have been tracking my RSI pains on a crude 0-2 scale since the beginning, whic
 
 # Grades
 
-My grade statistics are also available:
+What makes education especially interesting from a data analysis perspective is that your performance is quantitatively measured at the end of each semester in the form of a *final grade*.
+In my case these measurements look like this:
 
 ```{r, cache = TRUE}
 grades <- tibble(
@@ -480,6 +481,38 @@ grades[5,]$course_code <- "TFY4155"
 # Print the entire tibble except the statistics
 grades %>% select(semester, course_code, course_name, grade)
 ```
+
+A more aggregate summary can also be made for the impatient:
+
+```{r}
+grades %>%
+  drop_na(grade) %>%
+  group_by(grade) %>%
+  summarize(total = n()) %>%
+  ggplot() +
+  aes(x = "", y = total, fill = grade) +
+  geom_col() +
+  scale_fill_manual(values = as.vector(unlist(colors))) +
+  geom_text(
+    aes(
+      y = 25 - 0.5 * total - cumsum(c(0, total[1:3])),
+      x = 1,
+      label = paste(total, " ", grade, "'s", sep = "")
+    ), 
+    color = "white",
+    size = 5
+  ) +
+  theme(
+    axis.text = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  ylab("")
+```
+
+But what makes this data really interesting is when we combine it with the time tracking data.
+Many, including myself, think that hard work usually pays off, but is that the case here?
+
 
 ## Relation between time spent and final grade
 
