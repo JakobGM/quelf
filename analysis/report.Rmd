@@ -20,9 +20,9 @@ knitr::opts_chunk$set(fig.fullwidth = TRUE)
 knitr::opts_chunk$set(fig.width = 10)
 ```
 
-# Time tracking (with Toggl)
+# Time Tracking with Toggl
 
-## Data format
+## Data Format
 
 I have been tracking my time usage as a student since I started at the university in August 2014.
 Every time I sit down with study related work I start the Toggl timer.
@@ -148,7 +148,7 @@ toggl[c(1:3, (toggls-3):toggls), c("course", "description", "start", "end", "stu
 At the time of writing, `r toggls` distinct time entries have been recorded.
 Each entry contains the course I have been working on, the nature of the work, and start/end datetimes.
 
-## How many hours are tracked during a work day?
+## How Many Hours Are Tracked During a Work Day?
 
 What you quickly realize when tracking your own *effective* time use, is how little of it you actually have during an average day.
 To illustrate this point, let's plot the effective lengths of all my work days as a histogram grouped into half hour intervals.
@@ -212,7 +212,7 @@ The data also portrays a large standard deviation of `r round(sd(days$study_hour
 This might by an example of the [superiority bias](https://en.wikipedia.org/wiki/Illusory_superiority) or it may be true that most people actually overestimate their effective work hours during an average day.
 Based on data gathered by other students at my university I lean towards the latter.
 
-## What kind of work is the time spent on?
+## What Kind of Work Is the Time Spent On?
 
 The "nature of the work" is categorized into seven different types of work:
 
@@ -249,7 +249,7 @@ This comes as no surprise to me.
 Most of the semester is spent handing in one project after another, often with little time in between.
 I will come back to how this often adversely affects my final grade further down.
 
-## Do certain type of work result in longer days?
+## Do Certain Type of Work Result in Longer Days?
 
 We can try to visualize what kind of work dominates the workdays of different length.
 
@@ -292,7 +292,7 @@ The conclusion that can be drawn from this plot is that the longer the days, the
 Most projects last for two/three weeks, and in order to get a good grade it often requires full time work on at least half of those days (from personal experience).
 Taking into account that I have to attend 3 other courses at the same times, some of them even with their own projects, it often leads to quite long work days.
 
-## Trend of work over time
+## Trend of Work over Time
 
 Until now we have only looked at aggregate statistics, but has the amount of work changed over time?
 
@@ -513,7 +513,7 @@ grades %>%
 But what makes this data really interesting is when we combine it with the time tracking data...
 
 
-## Relation between time spent and final grade
+## Relation Between Time Spent and Final Grade
 
 We start by testing the first hypothesis that falls to mind, namely *hard work pays off*.
 Many, including myself, think that time investment is the strongest predictor for the final grade in a course, but is that really the case here?
@@ -669,7 +669,7 @@ In a perfect world you would expect two truths to hold:
    My 26 hours of time investment in "Finance for Science Students" yielded an A, while 125 hours were required for "General Linear Models" which also yielded an A during the same semester. That is almost a 5-to-1 difference!
 
 
-## Trend of work amount and grades over time
+## Trend of Work Amount and Grades over Time
 
 What we have ignored so far is *time*.
 Have my grade-relative performance changed over time?
@@ -779,7 +779,7 @@ Taking a look at the white number labels, which indicate which semester the cour
 *PS: The "Finance for Science Students" is a great outlier here. The professor has basically been giving the same exam for a couple of decades, and I took advantage of that fact.*
 
 
-## Does the type of work matter for the final grade?
+## Trend of Work Amount and Grades over Time
 
 Since time investment *alone* does not entirely explain the variations observed in the final grades, other factors must be at play.
 Several predictors can be proposed, some of which I have data for.
@@ -801,7 +801,8 @@ not_normalized %>%
   geom_bar(stat = "identity") +
   scale_fill_brewer(palette = "Spectral", direction = -1) +
   scale_hours("Hours Spent on Courses", y = TRUE) +
-  xlab("Final Grade")
+  xlab("Final Grade") +
+  theme(legend.position = "right")
 ```
 
 This plot is not suitable for what we are trying to explain; it mainly shows the total time invested in each grade letter.
