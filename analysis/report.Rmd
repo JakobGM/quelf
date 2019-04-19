@@ -123,6 +123,9 @@ toggl$description %<>%
 # Assign the remaining empty descriptions as "Hand-in"
 toggl$description[toggl$description == ""] <- "Hand-in"
 
+# And consider Pedagogics as Exercise, as I have been in recent times
+toggl$description[toggl$description == "Pedagogics"] <- "Exercise"
+
 # We calculate the percentage used in each work type.
 # This is used to reorder the description factor variable accordingly.
 percentage <- toggl %>%
@@ -211,7 +214,7 @@ Based on data gathered by other students at my university I lean towards the lat
 
 ## What kind of work is the time spent on?
 
-The "nature of the work" is categorized into 8 different types of work:
+The "nature of the work" is categorized into seven different types of work:
 
 * **Lecture** - Listening and/or taking notes in lectures.
 * **Theory** - Reading books/articles on the curriculum.
