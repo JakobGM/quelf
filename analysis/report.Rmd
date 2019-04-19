@@ -38,12 +38,6 @@ library(tidyverse)
 # For parsing JSON
 library(tidyjson)
 
-# Data pipelining functionality
-library(magrittr)
-
-# For use of `ymd_hms`
-library(lubridate)
-
 # For reshaping data frames, e.g. `spread`
 library(reshape2)
 
@@ -52,9 +46,6 @@ library(zoo)
 
 # For outputting dataframes as HTML tables
 library(kableExtra)
-
-# For working with factor variables
-library(forcats)
 
 # For use of `percent_format()`
 library(scales)
@@ -67,6 +58,9 @@ library(jsonlite)
 
 # For `lookup_by_column`
 library(rqdatatable)
+
+# For various datetime functionality
+library(lubridate)
 ```
 
 ```{r, cache = TRUE}
