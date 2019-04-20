@@ -20,6 +20,10 @@ knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(results = "hold")
 knitr::opts_chunk$set(fig.fullwidth = TRUE)
 knitr::opts_chunk$set(fig.width = 10)
+
+if (knitr::is_latex_output()) {
+  knitr::opts_chunk$set(echo = FALSE)
+}
 ```
 
 ```{r}
@@ -192,7 +196,7 @@ toggl_summary %>%
   )
 ```
 
-
+\newpage
 ## How Many Hours Are Tracked During a Work Day?
 
 What you quickly realize when tracking your own *effective* time use, is how little of it you actually have during an average day.
@@ -337,6 +341,7 @@ The conclusion that can be drawn from this plot is that the longer the days, the
 Most projects last for two/three weeks, and in order to get a good grade it often requires full time work on at least half of those days (from personal experience).
 Taking into account that I have to attend 3 other courses at the same times, some of them even with their own projects, it often leads to quite long work days.
 
+\newpage
 ## Trend of Work over Time
 
 Until now we have only looked at aggregate statistics, but has the amount of work changed over time?
@@ -420,6 +425,7 @@ If the frequency of RSI pains increase over time, find a doctor which takes the 
 My first doctor basically described a healthy dose of "putting on a brave face" and a not-so-healthy dose of ever-increasing strong painkillers.
 I have been tracking my RSI pains on a crude 0-2 scale since the beginning, which we will come back to later.
 
+\newpage
 # Grades
 
 What makes education especially interesting from a data analysis perspective is that your performance is quantitatively measured at the end of each semester in the form of a *final grade*.
@@ -558,6 +564,7 @@ grades %>%
 But what makes this data really interesting is when we combine it with the time tracking data...
 
 
+\newpage
 ## Relation Between Time Spent and Final Grade
 
 We start by testing the first hypothesis that falls to mind, namely *hard work pays off*.
@@ -593,6 +600,7 @@ If the hypothesis would hold *perfectly* we would expect the colors to be arrang
 This is obviously not the case here, but there are some minor trends.
 *All* courses with more than 180 hours of time investment yielded a final grade of A, while the courses below this limit show a greater degree of variability.
 
+\newpage
 ## Grade Relative to Grade Distributions
 
 So we just concluded that time investment alone is not a perfect predictor for final grades.
@@ -714,12 +722,13 @@ In a perfect world you would expect two truths to hold:
    My 26 hours of time investment in "Finance for Science Students" yielded an A, while 125 hours were required for "General Linear Models" which also yielded an A during the same semester. That is almost a 5-to-1 difference!
 
 
+\newpage
 ## Trend of Work Amount and Grades over Time
 
 What we have ignored so far is *time*.
 Have my grade-relative performance changed over time?
 
-```{r, fig.cap = "The red lines delineate each semester."}
+```{r}
 semester_position <- courses %>%
   group_by(semester) %>%
   summarize(count = n()) %>%
@@ -769,6 +778,7 @@ courses %>%
 There is no way around the fact that my grades have gotten worse over time.
 Getting a part-time job, my RSI issues, and generally less time investment over time may all be contributing factors to this, but...
 
+\newpage
 ## Courses with Less Students Are More Difficult
 
 I think the most important factor is the enrollment size of the courses.
@@ -824,6 +834,7 @@ Taking a look at the white number labels, which indicate which semester the cour
 *PS: The "Finance for Science Students" is a large outlier here. The professor has basically been giving the same exam for a couple of decades, and I took advantage of that fact.*
 
 
+\newpage
 ## Trend of Work Amount and Grades over Time
 
 Since time investment *alone* does not entirely explain the variations observed in the final grades, other factors must be at play.
@@ -927,6 +938,7 @@ percentage %>%
 While having in mind that I might be too biased towards my own work preferences, I still think that most courses could preferably change the project weighting to at least 50% in order to reflect this statistical fact.
 
 
+\newpage
 # Sleep
 
 I get the impression that many people have this romanticized view of college consisting of frantic all-nighters at the end of the semester, cramming for exams.
