@@ -324,6 +324,9 @@ categories_per_day %>%
   ungroup() %>%
   mutate(group = (as.numeric(group) - 1) / 2) %>%
   mutate(category = ordered(category, levels = levels(toggl$description))) %>%
+  select(-date, -study_hours) %>%
+  group_by(group, category) %>%
+  summarize(hours = sum(hours)) %>%
   ggplot() +
   aes(x = group + 0.25) +
   aes(y = hours) +
@@ -1042,12 +1045,39 @@ sleep[100:105, c("start", "stop", "Drank coffee", "RSI Pains")]
 This kind of data lends it very well to trend visualization.
 That is what we will do here, plotting the time I went to bed and woke up over time:
 
+```{r, echo = FALSE}
+library(suncalc)
+sun_data <- getSunlightTimes(
+    date = seq(
+      min(sleep$stop_date),
+      max(sleep$stop_date),
+      by = "days"
+    ),
+    lat = 63.4305,
+    lon = 10.3950,
+    keep = c("sunrise", "sunset"),
+    tz = "UTC"
+  ) %>%
+  as_tibble() %>%
+  select(date, sunrise, sunset) %>%
+  mutate(
+    sunrise = with_tz(sunrise, "Europe/Oslo"),
+    sunset = with_tz(sunset, "Europe/Oslo"),
+  ) %>%
+  mutate(
+    sunset = ((hour(sunset) + minute(sunset) / 60)),
+    sunrise = ((hour(sunrise) + minute(sunrise) / 60))
+  ) %>%
+  rename(stop_date = date)
+```
+
 ```{r, fig.fullwidth = TRUE, fig.width = 20, fig.height = 4}
+translation <- 18
 time_of_day <- trans_new(
   "time_of_day",
-  transform = function(x) {(x - 18) %% 24},
-  inverse = function(x) {(x + 18) %% 24},
-  breaks = function(x) {1:24}
+  transform = function(x) {(x - translation) %% 24},
+  inverse = function(x) {(x + translation) %% 24},
+  breaks = function(x) {0:50}
 )
 
 sleep %>%
