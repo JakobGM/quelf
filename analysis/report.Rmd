@@ -1,15 +1,12 @@
 ---
-title: Visualizing 5 Years of University Education
-author: Jakob Gerhard Martinussen - @JakobGM
-date: April 14th, 2016
 output:
   html_document:
     theme: sandstone
     df_print: paged
     code_folding: hide
     css: knitr.css
-    toc: true
-    toc_float: true
+  md_document:
+    variant: markdown
 ---
 
 ```{r, echo = FALSE}
@@ -58,6 +55,9 @@ library(rqdatatable)
 
 # For various datetime functionality
 library(lubridate)
+
+# For assignment pipe functionality
+library(magrittr)
 ```
 
 # Introduction
@@ -1241,6 +1241,16 @@ Yes, this is the best model so far.
 It explains `r round(100 * work_start_r2)`% of the variability in the data compared to 3% and 6% in the previous models.
 For every hour I delay starting the work day I can expect to have `r round(-work_start_coefficient, 2)` less effective hours of work that same day.
 Might be common sense, but there you have it!
+
+```{r}
+sleep %>%
+  select(stop_date, sleep_duration) %>%
+  rename(date = stop_date) %>%
+  ggplot() +
+  aes(x = sleep_duration) +
+  geom_histogram(binwidth = 0.05)
+```
+
 
 
 <style>
