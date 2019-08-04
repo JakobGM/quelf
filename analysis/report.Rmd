@@ -447,7 +447,7 @@ grades <- tibble(
       "TIØ4258", "TMA4100", "TMA4105", "TMA4115", "TMA4120", "TMA4145",
       "TMA4150", "TMA4180", "TMA4195", "TMA4212", "TMA4215", "TMA4245",
       "TMA4265", "TMA4267", "TMA4268", "TMA4295", "TMA4300", "TMA4315",
-      "TMA4320", "TMA4850", "TMT4110"
+      "TMA4320", "TMA4500", "TMA4850", "TMT4110"
     ),
     course_name = c(
       "Science, Philosophy & Ethics",
@@ -482,17 +482,18 @@ grades <- tibble(
       "Computer Intensive Statistical Methods",
       "Generalized Linear Models",
       "Introduction to Scientific Computation",
+      "Project Thesis",
       "Experts in Teams",
       "Chemistry"
     ),
     grade = as.ordered(c(
-      "A", NA, "A", "A", "A", NA, NA, "B", "A", "A", "B", NA, "A", "B", "A", "A",
-      "A", "B", "C", NA, "C", "C", "C", "C", "A", "D", "B", NA, NA, NA, "A", "B",
-      NA, "B"
+      "A", NA, "A", "A", "A", NA, "B", "B", "A", "A", "B", "B", "A", "B", "A", "A",
+      "A", "B", "C", NA, "C", "C", "C", "C", "A", "D", "B", "A", NA, "B", "A", "B",
+      NA, "A", "B"
     )),
     semester = c(
       1, NA, 4, 1, 5, 7, 10, 3, 1, 2, 3, 10, 9, 3, 1, 2, 2,
-      3, 5, 6, 6, 9, 6, 9, 4, 5, 6, 10, 5, 10, 9, 4, 10, 2
+      3, 5, 6, 6, 9, 6, 9, 4, 5, 6, 10, 5, 10, 9, 4, 11, 10, 2
     )
   ) %>%
   arrange(semester) %>%
@@ -526,7 +527,7 @@ grade_statistics <- grades %>%
   use_series(row) %>%
   bind_rows()
 
-grades %<>% right_join(grade_statistics, by = "course_code")
+grades %<>% left_join(grade_statistics, by = "course_code")
 
 # Rename back to original course codes
 grades[3,]$course_code <- "TFY4145"
@@ -549,12 +550,12 @@ grades %>%
   scale_fill_manual(values = as.vector(unlist(colors))) +
   geom_text(
     aes(
-      y = 25 - 0.5 * total - cumsum(c(0, total[1:3])),
+      y = 30 - 0.5 * total - cumsum(c(0, total[1:3])),
       x = 1,
       label = paste(total, " ", grade, "'s", sep = "")
     ), 
     color = "white",
-    size = 5
+    size = 6
   ) +
   theme(
     axis.text = element_blank(),
@@ -669,10 +670,11 @@ grade_intervals <- grade_cummulatives %>%
 
 size <- 6
 grade_cummulatives %>%
+  drop_na(lower_grade_percentile) %>%
   ggplot() +
   aes(x = reorder(course_name, -study_hours)) +
   geom_linerange(
-    data = grade_intervals,
+    data = grade_intervals %>% drop_na(ymin),
     aes(
       ymin = ymin,
       ymax = ymax,
